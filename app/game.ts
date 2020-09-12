@@ -1,5 +1,4 @@
 import { Socket } from 'socket.io';
-import { getLineAndCharacterOfPosition } from 'typescript';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';

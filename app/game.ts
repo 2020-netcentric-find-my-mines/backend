@@ -63,6 +63,7 @@ export class Game implements IGame {
 
     currentTime = 0;
     numberOfBombs = 3;
+    numberOfBombsFound = 0;
     numberOfPlayers = 2;
     scoreMultiplier = 1;
     shouldSkipTick = false;
@@ -153,5 +154,9 @@ export class Game implements IGame {
 
     get isFinished(): boolean {
         return this.currentState === GameState.FINISHED;
+    }
+
+    get isPaused(): boolean {
+        return this.currentState === GameState.PAUSED;
     }
 }

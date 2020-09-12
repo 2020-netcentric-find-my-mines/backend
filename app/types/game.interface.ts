@@ -12,7 +12,7 @@ export enum GameState {
 }
 
 export interface IGame {
-    emitEvent(event: SocketEvent, data: any);
+    emitEvent(event: SocketEvent, data: any): void;
     socket: Socket;
 
     identifier: string; // Game's identifier (Same as Socket.IO's room)
@@ -22,7 +22,7 @@ export interface IGame {
     currentState: GameState; // Current game's state
 
     waitTime: number; // Time per round (sec.) (Default: 10)
-    timer: any; // Timer
+    timer: (fn: Function, t: number) => void | null; // Timer
     startTimer(): void;
 
     boardWidth: number; //Width of the game board (Default: 6)

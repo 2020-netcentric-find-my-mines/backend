@@ -1,6 +1,6 @@
-import * as express from 'express';
+import express from 'express';
 import * as http from 'http';
-import * as socket from 'socket.io';
+import socket from 'socket.io';
 import { Game } from './game';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';

@@ -4,7 +4,7 @@ import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
 
-function Timer(fn, t) {
+function Timer(fn: Function, t: number) {
     var timer = setInterval(fn, t);
 
     this.stop = function () {
@@ -62,6 +62,7 @@ export class Game implements IGame {
     }
 
     startTimer(): void {
+        // @ts-ignore
         this.timer = new Timer(() => {
             this.tick();
         }, this.waitTime * 1000);

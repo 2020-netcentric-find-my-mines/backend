@@ -25,10 +25,12 @@ export interface IGame {
     timer: any; // Timer
     startTimer(): void;
 
+    boardWidth: number; //Width of the game board (Default: 6)
+    boardHeight: number; //Height of the game board (Default: 6)
     numberOfBombs: number; // Number of bombs
-    numberOfPlayers: number; // Number of players
+    maxNumberOfPlayers: number; //Maximum number of players that can play the game
     numberOfBombsFound: number; // Number of bombs found
-    scoreMultiplier: number; // Score multiplier (Default: 1)
+    scoreMultiplier: number; // Score multiplier (Default: 1)    
 
     generateGameID(): string; // Create random string
 
@@ -50,9 +52,11 @@ export interface IGame {
     // Pick next player
     selectNextPlayer(): void;
 
-    // Check if winning condition is satisfied
-    // Return the winner if satisfied, else return `null`
-    isWinningConditionSatisfied(): Player | null;
+    // Return the winner or current winner of the game
+    getWinner(): Player;
+
+    // Return the current player that needs to play the turn
+    getCurrentPlayer(): Player;
 
     //
     resetTimer(): boolean;
@@ -60,17 +64,19 @@ export interface IGame {
     // This function will be executed every 1 sec.
     tick(): void;
 
-    // Finish
+    // Actions to perform after finish game
     finish(): boolean;
 
     // Game configurations
     setNumberOfBombs(n: number): boolean;
     setMaxPlayers(n: number): boolean;
+    setBoardSize(w: number, h: number): boolean;
 
     // Player events
     playerDidConnect(p: Player): boolean;
     playerDidDisconnect(p: Player): void;
-    playerDidSelectCoordinate(p: Player, c: Coordinate): boolean;
+    playerDidSelectCoordinate(p: Player, c: Coordinate): boolean; //Also check if game is finished after each move
+    playerDidSelectPause(): boolean;
 
     // Game states
     readonly isNotStarted: boolean;

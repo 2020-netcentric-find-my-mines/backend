@@ -16,7 +16,8 @@ let app = express()
     })
     .listen(process.env.PORT || 3000);
 
-const io = socket(app, { origins: '*:*' });
+const io = socket.listen(app)
+// const io = socket(app, { origins: '*:*' });
 
 // Utilities
 function deleteByValue(object: Record<string, string>, value: string) {

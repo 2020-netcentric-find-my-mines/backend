@@ -37,7 +37,7 @@ class Box implements Coordinate {
     isBomb: boolean = false;
     isSelected: boolean = false;
 
-    constructor(x: number, y:number) {
+    constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
     }
@@ -52,10 +52,10 @@ class Box implements Coordinate {
 }
 
 export class Game implements IGame {
-    
+
     socket: Socket;
 
-    timer = null; 
+    timer: any = null;
 
     constructor(socket: Socket) {
         this.socket = socket;
@@ -77,17 +77,18 @@ export class Game implements IGame {
     }
 
     identifier = this.generateGameID();
-    coordinates = [];
-    players = [];
-    currentPlayer = null;
-    private currentPlayerIndex:number = null;
+    coordinates: Coordinate[] = [];
+    players: Player[] = [];
+    currentPlayer: Player | null = null;
+    private currentPlayerIndex: number = null;
     currentState = GameState.NOT_STARTED;
 
     boardWidth = 6;
     boardHeight = 6;
     currentTime = 0;
-    numberOfBombs = 11;
+    numberOfBombs = 3;
     numberOfBombsFound = 0;
+    numberOfPlayers = 2;
     maxNumberOfPlayers = 2;
     scoreMultiplier = 1;
     shouldSkipTick = false;
@@ -107,18 +108,18 @@ export class Game implements IGame {
     populateBoard(w: number, h: number): void;
 
     populateBoard(w: any, h?: any) {
-        if (h==-1) h = w;
+        if (h == -1) h = w;
         //Add all coordinates
         for (let x = 0; x < w; x++) {
             for (let y = 0; y < h; y++) {
-                let tile: Coordinate = new Box(x,y);
+                let tile: Coordinate = new Box(x, y);
                 this.coordinates.push(tile);
             }
         }
         //Find and set bomb tiles
         let tempArr: number[] = [];
-        while(tempArr.length < this.numberOfBombs) {
-            let n:number = Math.floor(Math.random() * w * h);
+        while (tempArr.length < this.numberOfBombs) {
+            let n: number = Math.floor(Math.random() * w * h);
             if (tempArr.indexOf(n) === -1) tempArr.push(n);
         }
         for (let i of tempArr) {
@@ -135,7 +136,7 @@ export class Game implements IGame {
         //Deal with special case where we finished game and want to reset but not have enough players to play
         if (this.isFinished && this.players.length <= 1) {
             this.currentState = GameState.NOT_STARTED;
-            return true; 
+            return true;
         }
         this.currentPlayer = this.selectFirstPlayer();
         this.currentState = GameState.ONGOING;
@@ -144,7 +145,7 @@ export class Game implements IGame {
     }
 
     selectFirstPlayer(): Player {
-        let n:number = Math.floor(Math.random() * this.players.length);
+        let n: number = Math.floor(Math.random() * this.players.length);
         this.currentPlayerIndex = n;
         return this.players[this.currentPlayerIndex];
     }
@@ -166,7 +167,7 @@ export class Game implements IGame {
 
     getWinner(): Player {
         let winner: Player = this.players[0];
-        for (let i=1; i<this.players.length; i++) {
+        for (let i = 1; i < this.players.length; i++) {
             if (this.players[i].score > winner.score) winner = this.players[i];
         }
         return winner
@@ -250,7 +251,7 @@ export class Game implements IGame {
         }
         return false;
     }
-    
+
     //Can continue playing unless only one player is left
     playerDidDisconnect(p: Player): void {
         if (this.players.length == 1) return; //Need to implement destroy game
@@ -288,7 +289,7 @@ export class Game implements IGame {
         let p: Player = this.selectNextPlayer();
         this.currentPlayer = p;
         this.resetTimer();
-       return p;
+        return p;
     }
 
     playerDidSelectPause(): boolean {

@@ -66,7 +66,7 @@ export class Game implements IGame {
         // @ts-ignore
         this.timer = new Timer(() => {
             this.tick();
-        }, this.waitTime * 1000);
+        }, 1000);
     }
 
     waitTime: number = 10;

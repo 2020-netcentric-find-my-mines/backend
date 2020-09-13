@@ -96,7 +96,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         game.playerDidDisconnect(player);
     });
 
-    socket.on("SET_NUMBER_OF_BOMB", (amount: number) => {
+    socket.on(SocketEvent.SET_NUMBER_OF_BOMB, (amount: number) => {
         console.log("There will be \(amount) number of bomb");
 
         let gameID = _games[playerID];
@@ -108,7 +108,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         game.setNumberOfBombs(amount);
     });
 
-    socket.on("PAUSE", () => {
+    socket.on(SocketEvent.PAUSE, () => {
         console.log("The game will be pause");
 
         let gameID = _games[playerID];
@@ -125,7 +125,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
-    socket.on("SET_BOARD_SIZE", (w: number, h: number) => {
+    socket.on(SocketEvent.SET_BOARD_SIZE, (w: number, h: number) => {
         let gameID = _games[playerID];
 
         // Find game
@@ -140,7 +140,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
-    socket.on("SET_MAX_PLAYER", (amount: number) => {
+    socket.on(SocketEvent.SET_MAX_PLAYER, (amount: number) => {
         let gameID = _games[playerID];
 
         // Find game
@@ -156,7 +156,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     // To show other player whose turn is it
-    socket.on("GET_CURRENT_PLAYER", () => {
+    socket.on(SocketEvent.GET_CURRENT_PLAYER, () => {
         let gameID = _games[playerID];
 
         // Find game
@@ -164,7 +164,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
         let result = game.getCurrentPlayer();
 
-        socket.emit("CURRENT_PLAYER", result);
+        socket.emit(SocketEvent.CURRENT_PLAYER, result);
     });
 });
 

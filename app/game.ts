@@ -41,14 +41,6 @@ class Box implements Coordinate {
         this.x = x;
         this.y = y;
     }
-
-    setBomb(): void {
-        this.isBomb = true;
-    }
-
-    select(): void {
-        this.isSelected = true;
-    }
 }
 
 export class Game implements IGame {
@@ -124,7 +116,7 @@ export class Game implements IGame {
             if (tempArr.indexOf(n) === -1) tempArr.push(n);
         }
         for (let i of tempArr) {
-            this.coordinates[i].setBomb();
+            this.coordinates[i].isBomb = true;
         }
     }
 
@@ -161,8 +153,7 @@ export class Game implements IGame {
     }
 
     selectNextPlayer(): Player {
-        this.currentPlayerIndex += 1;
-        if (this.currentPlayerIndex >= this.players.length) this.currentPlayerIndex = 0;
+        this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.length;
         return this.players[this.currentPlayerIndex];
     }
 

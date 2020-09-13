@@ -3,7 +3,7 @@ import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
-import chalk from 'chalk'
+import chalk from 'chalk';
 
 function Timer(fn: Function, t: number) {
     var timer = setInterval(fn, t);
@@ -97,14 +97,14 @@ export class Game implements IGame {
         });
     }
 
-    addPlayer(playerID: string, name = ""): void {
+    addPlayer(playerID: string, name = ''): void {
         let player: Player = {
             id: playerID,
             name,
-            score: 0
-        }
+            score: 0,
+        };
 
-        this.players.push(player)
+        this.players.push(player);
     }
 
     generateGameID(): string {
@@ -169,7 +169,10 @@ export class Game implements IGame {
     }
 
     log(...args: any[]): void {
-        console.log(chalk.bgGreen(chalk.black(`game.ts/${this.identifier}`)), ...args)
+        console.log(
+            chalk.bgGreen(chalk.black(`game.ts/${this.identifier}`)),
+            ...args,
+        );
     }
 
     start(): boolean {
@@ -206,6 +209,13 @@ export class Game implements IGame {
     // In case we want to notify who needs to play right now
     getCurrentPlayer(): Player {
         return this.currentPlayer;
+    }
+
+    findPlayer(playerID: string): Player {
+        for (let p of this.players) {
+            if (p.id === playerID) return p;
+        }
+        return null;
     }
 
     resetTimer(): boolean {
@@ -331,7 +341,7 @@ export class Game implements IGame {
     }
 
     playerDidSelectCoordinate(p: Player, c: Coordinate): boolean {
-        this.log("playerDidSelectCoordinate", p, c)
+        this.log('playerDidSelectCoordinate', p, c);
         if (p == null || c == null || c.isSelected == true || !this.isOngoing) {
             this.emitEvent(SocketEvent.COORDINATED_SELECTED, {
                 isOK: false,

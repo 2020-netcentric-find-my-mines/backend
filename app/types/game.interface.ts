@@ -59,6 +59,9 @@ export interface IGame {
     // Return the current player that needs to play the turn
     getCurrentPlayer(): Player;
 
+    // Return object Player if player is in the game; otherwise, return null
+    findPlayer(playerID: string): Player;
+
     //
     resetTimer(): boolean;
 

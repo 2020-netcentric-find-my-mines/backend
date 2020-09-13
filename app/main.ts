@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors'
+import cors from 'cors';
 import socket from 'socket.io';
 import { Game } from './game';
 import { SocketEvent } from './socket-event';
@@ -17,14 +17,19 @@ let app = express()
     })
     .listen(process.env.PORT || 3001);
 
-const io = socket.listen(app)
+const io = socket.listen(app);
 // const io = socket(app, { origins: '*:*' });
 
 // Utilities
-function deleteByValue(object: Record<string, string>, value: string) {
-    for (var key in object) {
-        if (object[key] === value) delete object[key];
-    }
+// function deleteByValue(object: Record<string, string>, value: string) {
+//     for (var key in object) {
+//         if (object[key] === value) delete object[key];
+//     }
+// }
+
+function findGame(playerID: string): Game {
+    let gameID = _games[playerID];
+    return games.find((g) => g.identifier === gameID);
 }
 
 // Mapping Player ID -> Game ID
@@ -61,33 +66,34 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     // Create a new game
     socket.on(SocketEvent.CREATE_GAME, () => {
         let game = new Game(socket);
-        game.addPlayer(playerID)
+        game.addPlayer(playerID);
         games.push(game);
-        _games[playerID] = game.identifier
+        _games[playerID] = game.identifier;
         socket.join(game.identifier);
-        game.emitEvent(SocketEvent.CREATE_GAME_FEEDBACK, { isOK: true, gameID: game.identifier, players: game.players })
+        game.emitEvent(SocketEvent.CREATE_GAME_FEEDBACK, {
+            isOK: true,
+            gameID: game.identifier,
+            players: game.players,
+        });
 
-        console.log("✨ [CREATE_GAME] Game", game.identifier)
-        console.log("✨ [CREATE_GAME] Player", playerID)
+        console.log('✨ [CREATE_GAME] Game', game.identifier);
+        console.log('✨ [CREATE_GAME] Player', playerID);
     });
 
     // Join an existing game
     socket.on(SocketEvent.JOIN_GAME, (gameID) => {
         let game = games.find((g) => g.identifier === gameID);
         if (game) {
-            game.emitEvent(
-                SocketEvent.JOIN_GAME_FEEDBACK,
-                {
-                    isOK: true,
-                    gameID: game.identifier,
-                    players: game.players,
-                    // TODO: Remove `isBomb` from `game.coordinates` before emitting to client
-                    coordinates: game.coordinates,
-                    currentState: game.currentState
-                }
-            )
+            game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, {
+                isOK: true,
+                gameID: game.identifier,
+                players: game.players,
+                // TODO: Remove `isBomb` from `game.coordinates` before emitting to client
+                coordinates: game.coordinates,
+                currentState: game.currentState,
+            });
         } else {
-            game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, { isOK: false })
+            game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, { isOK: false });
         }
     });
 
@@ -98,20 +104,19 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     socket.on(SocketEvent.SELECT_COORDINATE, (coordinate: Coordinate) => {
-        console.log("✨ [SELECT_COORDINATE] Player", playerID)
-        let gameID = _games[playerID];
-        console.log("✨ [SELECT_COORDINATE] _games", _games)
+        console.log('✨ [SELECT_COORDINATE] Player', playerID);
+        console.log('✨ [SELECT_COORDINATE] _games', _games);
 
         // Find game
-        let game = games.find((g) => g.identifier === gameID);
+        let game = findGame(playerID);
 
         if (game) {
-            console.log("✨ [SELECT_COORDINATE] Game", game.identifier)
-            console.log("✨ [SELECT_COORDINATE] Players", game.players)
-            console.log("✨ [SELECT_COORDINATE] Coordinate", coordinate)
+            console.log('✨ [SELECT_COORDINATE] Game', game.identifier);
+            console.log('✨ [SELECT_COORDINATE] Players', game.players);
+            console.log('✨ [SELECT_COORDINATE] Coordinate', coordinate);
 
             // Find player
-            let player = game.players.find((p) => p.id === playerID);
+            let player = game.findPlayer(playerID);
 
             // Run
             if (game && player && coordinate) {
@@ -123,29 +128,26 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     socket.on(SocketEvent.DISCONNECT, () => {
         console.log('🔥 User', socket.id);
 
-        let gameID = _games[playerID];
-
         // Find game
-        let game = games.find((g) => g.identifier === gameID);
+        let game = findGame(playerID);
 
         if (game) {
             // Find player
-            let player = game.players.find((p) => p.id === playerID);
+            let player = game.findPlayer(playerID);
 
             // Run
             let currentGameState = game.playerDidDisconnect(player);
             delete _games[playerID];
-            if (currentGameState == GameState.EMPTY) games.splice(games.indexOf(game), 1);
+            if (currentGameState == GameState.EMPTY)
+                games.splice(games.indexOf(game), 1);
         }
     });
 
     socket.on(SocketEvent.SET_NUMBER_OF_BOMB, (amount: number) => {
         console.log('There will be (amount) number of bomb');
 
-        let gameID = _games[playerID];
-
         // Find game
-        let game = games.find((g) => g.identifier === gameID);
+        let game = findGame(playerID);
 
         // Configure number of bomb
         game.setNumberOfBombs(amount);
@@ -154,10 +156,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     socket.on(SocketEvent.PAUSE, () => {
         console.log('The game will be pause');
 
-        let gameID = _games[playerID];
-
         // Find game
-        let game = games.find((g) => g.identifier === gameID);
+        let game = findGame(playerID);
 
         // Pause the game
         let pause: boolean = game.playerDidSelectPause();
@@ -169,10 +169,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     socket.on(SocketEvent.SET_BOARD_SIZE, (w: number, h: number) => {
-        let gameID = _games[playerID];
-
         // Find game
-        let game = games.find((g) => g.identifier === gameID);
+        let game = findGame(playerID);
 
         // Set board size
         let set = game.setBoardSize(w, h);
@@ -184,10 +182,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     socket.on(SocketEvent.SET_MAX_PLAYER, (amount: number) => {
-        let gameID = _games[playerID];
-
         // Find game
-        let game = games.find((g) => g.identifier === gameID);
+        let game = findGame(playerID);
 
         // Set max player
         let set = game.setMaxPlayers(amount);
@@ -200,10 +196,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
     // To show other player whose turn is it
     socket.on(SocketEvent.GET_CURRENT_PLAYER, () => {
-        let gameID = _games[playerID];
-
         // Find game
-        let game = games.find((g) => g.identifier === gameID);
+        let game = findGame(playerID);
 
         let result = game.getCurrentPlayer();
 

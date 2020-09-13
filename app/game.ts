@@ -88,11 +88,11 @@ export class Game implements IGame {
     shouldSkipTick = false;
 
     private changeGameState(to: GameState): void {
+        this.currentState = to;
         this.emitEvent(SocketEvent.CHANGED_GAMESTATE, {
             from: this.currentState,
             to: to,
         });
-        this.currentState = to;
     }
 
     generateGameID(): string {

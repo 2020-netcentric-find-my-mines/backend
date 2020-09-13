@@ -2,20 +2,20 @@ export enum SocketEvent {
     CONNECTION = 'connection',
     DISCONNECT = 'disconnect',
 
-    // Server events
+    // Server events: [Server] -> [Client]
     TICK = 'TICK',
     NEXT_PLAYER = 'NEXT_PLAYER',
     COORDINATED_SELECTED = 'COORDINATED_SELECTED',
     WINNER = 'WINNER',
     CHANGED_GAMESTATE = 'CHANGED_GAMESTATE',
 
-    // Client feedbacks
+    // Client feedbacks: [Server] -> [Client]
     SELECT_COORDINATE_FEEDBACK = 'SELECT_COORDINATE_FEEDBACK',
     CREATE_GAME_FEEDBACK = 'CREATE_GAME_FEEDBACK',
     JOIN_GAME_FEEDBACK = 'JOIN_GAME_FEEDBACK',
     QUICK_MATCH_FEEDBACK = 'QUICK_MATCH_FEEDBACK',
 
-    // Client events
+    // Client events: [Client] -> [Server]
     SELECT_COORDINATE = 'SELECT_COORDINATE',
     CREATE_GAME = 'CREATE_GAME',
     JOIN_GAME = 'JOIN_GAME',

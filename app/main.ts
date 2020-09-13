@@ -14,7 +14,7 @@ let app = express()
             )
             .end();
     })
-    .listen(process.env.PORT || 3000);
+    .listen(process.env.PORT || 3001);
 
 const io = socket.listen(app)
 // const io = socket(app, { origins: '*:*' });
@@ -60,8 +60,11 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     // Create a new game
     socket.on(SocketEvent.CREATE_GAME, () => {
         let game = new Game(socket);
+        game.addPlayer(playerID)
         games.push(game);
+        _games[playerID] = game.identifier
         socket.join(game.identifier);
+
         console.log("✨ [CREATE_GAME] Game", game.identifier)
         console.log("✨ [CREATE_GAME] Player", playerID)
     });
@@ -85,6 +88,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
         if (game) {
             console.log("✨ [SELECT_COORDINATE] Game", game.identifier)
+            console.log("✨ [SELECT_COORDINATE] Players", game.players)
+            console.log("✨ [SELECT_COORDINATE] Coordinate", coordinate)
 
             // Find player
             let player = game.players.find((p) => p.id === playerID);
@@ -104,11 +109,13 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         // Find game
         let game = games.find((g) => g.identifier === gameID);
 
-        // Find player
-        let player = game.players.find((p) => p.id === playerID);
+        if (game) {
+            // Find player
+            let player = game.players.find((p) => p.id === playerID);
 
-        // Run
-        game.playerDidDisconnect(player);
+            // Run
+            game.playerDidDisconnect(player);
+        }
     });
 
     socket.on(SocketEvent.SET_NUMBER_OF_BOMB, (amount: number) => {

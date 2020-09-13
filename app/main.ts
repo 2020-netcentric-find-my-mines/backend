@@ -1,16 +1,22 @@
 import express from 'express';
 import * as http from 'http';
 import socket from 'socket.io';
+import { servicesVersion } from 'typescript';
 import { Game } from './game';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 
-let app = express();
-const server = http.createServer(app);
-const options = {
-    /* ... */
-};
-const io = socket(server, options);
+let app = express()
+    .use((_: express.Request, res: express.Response) => {
+        return res
+            .send(
+                '<img src="https://media1.tenor.com/images/3cee627ab9f455a0f14739ba5edbf81a/tenor.gif?itemid=13499314" />',
+            )
+            .end();
+    })
+    .listen(process.env.PORT || 3000);
+
+const io = socket(app, {});
 
 // Utilities
 function deleteByValue(object: Record<string, string>, value: string) {
@@ -31,10 +37,10 @@ let proxyHandler: ProxyHandler<Game[]> = {
         target[property] = value;
         let filtered = target.filter((g) => {
             if (!g.isEmpty) {
-                return true
+                return true;
             } else {
-                deleteByValue(_games, g.identifier)
-                return false
+                deleteByValue(_games, g.identifier);
+                return false;
             }
         });
         target = filtered;
@@ -58,7 +64,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     // Join an existing game
-    socket.on(SocketEvent.JOIN_GAME, (gameID) => { });
+    socket.on(SocketEvent.JOIN_GAME, (gameID) => {});
 
     // Quick match
     socket.on(SocketEvent.QUICK_MATCH, () => {
@@ -97,7 +103,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     socket.on(SocketEvent.SET_NUMBER_OF_BOMB, (amount: number) => {
-        console.log("There will be \(amount) number of bomb");
+        console.log('There will be (amount) number of bomb');
 
         let gameID = _games[playerID];
 
@@ -109,7 +115,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     socket.on(SocketEvent.PAUSE, () => {
-        console.log("The game will be pause");
+        console.log('The game will be pause');
 
         let gameID = _games[playerID];
 
@@ -120,8 +126,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let pause: boolean = game.playerDidSelectPause();
 
         if (!pause) {
-            socket.emit("ERROR", "Error pausing game")
-            console.log("Error pausing the game");
+            socket.emit('ERROR', 'Error pausing game');
+            console.log('Error pausing the game');
         }
     });
 
@@ -135,8 +141,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let set = game.setBoardSize(w, h);
 
         if (!set) {
-            socket.emit("ERROR", "Error setting board size")
-            console.log("Error setting board size");
+            socket.emit('ERROR', 'Error setting board size');
+            console.log('Error setting board size');
         }
     });
 
@@ -150,8 +156,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let set = game.setMaxPlayers(amount);
 
         if (!set) {
-            socket.emit("ERROR", "Error setting max player");
-            console.log("Error setting max player");
+            socket.emit('ERROR', 'Error setting max player');
+            console.log('Error setting max player');
         }
     });
 
@@ -167,6 +173,3 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         socket.emit(SocketEvent.CURRENT_PLAYER, result);
     });
 });
-
-// app.listen(3000, () => console.log('Find My Mines!'))
-server.listen(process.env.PORT || 3000);

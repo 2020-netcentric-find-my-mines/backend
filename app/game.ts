@@ -193,7 +193,7 @@ export class Game implements IGame {
         if (!this.isOngoing || !this.isPaused || !this.isFinished) return false;
         this.currentTime = this.waitTime
         this.emitEvent(SocketEvent.TICK, this.currentTime)
-        this.timer.reset(this.waitTime * 1000);
+        this.timer.reset(1000);
         return true;
     }
 

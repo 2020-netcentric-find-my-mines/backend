@@ -12,6 +12,13 @@ const options = {
 };
 const io = socket(server, options);
 
+// Utilities
+function deleteByValue(object: Record<string, string>, value: string) {
+    for (var key in object) {
+        if (object[key] === value) delete object[key];
+    }
+}
+
 // Mapping Player ID -> Game ID
 const _games: Record<string, string> = {};
 
@@ -22,7 +29,14 @@ let proxyHandler: ProxyHandler<Game[]> = {
     },
     set: function (target: Game[], property: number, value, receiver) {
         target[property] = value;
-        let filtered = target.filter((g) => !g.isEmpty);
+        let filtered = target.filter((g) => {
+            if (!g.isEmpty) {
+                return true
+            } else {
+                deleteByValue(_games, g.identifier)
+                return false
+            }
+        };
         target = filtered;
         return true;
     },
@@ -62,7 +76,9 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let player = game.players.find((p) => p.id === playerID);
 
         // Run
-        game.playerDidSelectCoordinate(player, coordinate);
+        if (game && player && coordinate) {
+            game.playerDidSelectCoordinate(player, coordinate);
+        }
     });
 
     socket.on(SocketEvent.DISCONNECT, () => {

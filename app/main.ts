@@ -64,13 +64,31 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         games.push(game);
         _games[playerID] = game.identifier
         socket.join(game.identifier);
+        game.emitEvent(SocketEvent.CREATE_GAME_FEEDBACK, { isOK: true, gameID: game.identifier, players: game.players })
 
         console.log("✨ [CREATE_GAME] Game", game.identifier)
         console.log("✨ [CREATE_GAME] Player", playerID)
     });
 
     // Join an existing game
-    socket.on(SocketEvent.JOIN_GAME, (gameID) => { });
+    socket.on(SocketEvent.JOIN_GAME, (gameID) => {
+        let game = games.find((g) => g.identifier === gameID);
+        if (game) {
+            game.emitEvent(
+                SocketEvent.JOIN_GAME_FEEDBACK,
+                {
+                    isOK: true,
+                    gameID: game.identifier,
+                    players: game.players,
+                    // TODO: Remove `isBomb` from `game.coordinates` before emitting to client
+                    coordinates: game.coordinates,
+                    currentState: game.currentState
+                }
+            )
+        } else {
+            game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, { isOK: false })
+        }
+    });
 
     // Quick match
     socket.on(SocketEvent.QUICK_MATCH, () => {

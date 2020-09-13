@@ -80,8 +80,8 @@ export class Game implements IGame {
     coordinates: Coordinate[] = [];
     players: Player[] = [];
     currentPlayer: any = null;
-    private currentPlayerIndex: number = null;
     currentState = GameState.NOT_STARTED;
+    private currentPlayerIndex: number = null;
 
     boardWidth = 6;
     boardHeight = 6;

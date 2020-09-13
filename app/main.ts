@@ -169,4 +169,4 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 });
 
 // app.listen(3000, () => console.log('Find My Mines!'))
-server.listen(3000);
+server.listen(process.env.PORT || 3000);

@@ -74,6 +74,9 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     socket.on(SocketEvent.JOIN_GAME, (gameID) => {
         let game = games.find((g) => g.identifier === gameID);
         if (game) {
+            game.addPlayer(playerID)
+            socket.join(game.identifier);
+            _games[playerID] = game.identifier
             game.emitEvent(
                 SocketEvent.JOIN_GAME_FEEDBACK,
                 {

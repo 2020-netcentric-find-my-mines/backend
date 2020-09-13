@@ -88,6 +88,14 @@ export class Game implements IGame {
     scoreMultiplier = 1;
     shouldSkipTick = false;
 
+    private changeGameState(to: GameState): void {
+        this.emitEvent(SocketEvent.CHANGED_GAMESTATE, {
+            from: this.currentState,
+            to: to
+        });
+        this.currentState = to;
+    }
+
     generateGameID(): string {
         let result: string = '';
         let charac = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -132,11 +140,11 @@ export class Game implements IGame {
         // Deal with special case where we finished game
         // and want to reset but not have enough players to play
         if (this.isFinished && this.players.length <= 1) {
-            this.currentState = GameState.NOT_STARTED;
+            this.changeGameState(GameState.NOT_STARTED);
             return true;
         }
         this.currentPlayer = this.selectFirstPlayer();
-        this.currentState = GameState.ONGOING;
+        this.changeGameState(GameState.ONGOING);
         this.resetTimer();
         return true;
     }
@@ -154,7 +162,7 @@ export class Game implements IGame {
             return false;
         this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();
-        this.currentState = GameState.ONGOING;
+        this.changeGameState(GameState.ONGOING);
         this.start();
         return true;
     }
@@ -204,9 +212,9 @@ export class Game implements IGame {
     finish(): boolean {
         // Will be called only from playerDidSelectCoordinate
         this.timer.stop();
-        this.currentState = GameState.FINISHED;
+        this.changeGameState(GameState.FINISHED);
         let winner: Player = this.getWinner();
-
+        this.emitEvent(SocketEvent.WINNER, winner);
         /* Do some action in the future
 
 
@@ -234,8 +242,8 @@ export class Game implements IGame {
             (this.isNotStarted || this.isReady)
         ) {
             this.maxNumberOfPlayers = n;
-            if (this.isRoomFull) this.currentState = GameState.READY;
-            else this.currentState = GameState.NOT_STARTED;
+            if (this.isRoomFull) this.changeGameState(GameState.READY);
+            else this.changeGameState(GameState.NOT_STARTED);
             return true;
         }
         return false;
@@ -273,7 +281,7 @@ export class Game implements IGame {
         ) {
             p.score = 0;
             this.players.push(p);
-            if (this.isRoomFull) this.currentState = GameState.READY;
+            if (this.isRoomFull)  this.changeGameState(GameState.READY);
             return true;
         }
         return false;
@@ -283,30 +291,43 @@ export class Game implements IGame {
     playerDidDisconnect(p: Player): void {
         //Implement to destroy game in the future
         if (this.players.length == 1) {
-            this.currentState = GameState.EMPTY;
+            this.changeGameState(GameState.EMPTY);
             this.players = [];
             return;
         }
-        if (this.isReady || this.isNotStarted) {
-            this.currentState = GameState.NOT_STARTED;
+        if (this.isReady) {
+            this.changeGameState(GameState.NOT_STARTED);
         } else if (this.isOngoing || this.isPaused) {
             if (this.currentPlayer == p) {
                 this.nextTurn();
-                if (this.isPaused) {
-                    this.timer.stop();
-                }
             }
-        }
-        this.players.splice(this.players.indexOf(p), 1);
-        if (this.players.length == 1) {
-            this.finish();
-        }
+            if (this.isPaused) {
+                this.timer.stop();
+            }
+            this.players.splice(this.players.indexOf(p), 1);
+            if (this.players.length == 1) {
+                this.finish();
+            }
+            return;
+        } 
+        this.players.splice(this.players.indexOf(p), 1); // Will perform only for isReady, isNotStarted, isFinished
     }
 
     playerDidSelectCoordinate(p: Player, c: Coordinate): boolean {
-        if (p == null || c == null || c.isSelected == true || !this.isOngoing)
+        if (p == null || c == null || c.isSelected == true || !this.isOngoing) {
+            this.emitEvent(SocketEvent.COORDINATED_SELECTED, {
+                isOK: false,
+                coordinate: c,
+                player: p,
+            });
             return false;
+        }
         c.isSelected = true;
+        this.emitEvent(SocketEvent.COORDINATED_SELECTED, {
+            isOK: true,
+            coordinate: c,
+            player: p,
+        });
         if (c.isBomb) {
             this.currentPlayer.score += 1;
             this.numberOfBombsFound += 1;
@@ -326,10 +347,10 @@ export class Game implements IGame {
     playerDidSelectPause(): boolean {
         if (!this.isOngoing || !this.isPaused) return false;
         if (this.isOngoing) {
-            this.currentState = GameState.PAUSED;
+            this.changeGameState(GameState.PAUSED);
             this.timer.stop();
         } else {
-            this.currentState = GameState.ONGOING;
+            this.changeGameState(GameState.ONGOING);
             this.timer.start();
         }
     }

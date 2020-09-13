@@ -241,7 +241,7 @@ export class Game implements IGame {
     setNumberOfBombs(n: number): boolean {
         if (
             n > 0 &&
-            n % 2 == 1 &&
+            n % this.maxNumberOfPlayers != 0 &&
             this.isValidBoard(n, this.boardWidth, this.boardHeight) &&
             (this.isNotStarted || this.isReady)
         ) {

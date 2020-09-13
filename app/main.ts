@@ -1,10 +1,12 @@
 import express from 'express';
+import cors from 'cors'
 import socket from 'socket.io';
 import { Game } from './game';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 
 let app = express()
+    .use(cors())
     .use((_: express.Request, res: express.Response) => {
         return res
             .send(

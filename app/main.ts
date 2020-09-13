@@ -84,20 +84,20 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     socket.on(SocketEvent.JOIN_GAME, (gameID) => {
         let game = games.find((g) => g.identifier === gameID);
         if (game) {
-            game.addPlayer(playerID)
-            socket.join(game.identifier);
-            _games[playerID] = game.identifier
-            game.emitEvent(
-                SocketEvent.JOIN_GAME_FEEDBACK,
-                {
+            let success = game.addPlayer(playerID);
+            if (success) {
+                socket.join(game.identifier);
+                _games[playerID] = game.identifier;
+                game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, {
                     isOK: true,
                     gameID: game.identifier,
                     players: game.players,
                     // TODO: Remove `isBomb` from `game.coordinates` before emitting to client
                     coordinates: game.coordinates,
-                    currentState: game.currentState
-                }
-            )
+                    currentState: game.currentState,
+                });
+            } else
+                game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, { isOK: false });
         } else {
             game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, { isOK: false });
         }

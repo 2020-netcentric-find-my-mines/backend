@@ -97,14 +97,14 @@ export class Game implements IGame {
         });
     }
 
-    addPlayer(playerID: string, name = ''): void {
+    addPlayer(playerID: string, name = ''): boolean {
         let player: Player = {
             id: playerID,
             name,
             score: 0,
         };
 
-        this.players.push(player);
+        return this.playerDidConnect(player);
     }
 
     generateGameID(): string {

@@ -9,6 +9,7 @@ export enum GameState {
     ONGOING = 'ONGOING',
     PAUSED = 'PAUSED',
     FINISHED = 'FINISHED',
+    EMPTY = 'EMPTY',
 }
 
 export interface IGame {
@@ -84,6 +85,7 @@ export interface IGame {
     readonly isOngoing: boolean;
     readonly isFinished: boolean;
     readonly isPaused: boolean;
+    readonly isEmpty: boolean;
 
     isPublic: boolean;
 

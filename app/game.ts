@@ -277,7 +277,12 @@ export class Game implements IGame {
 
     //Can continue playing unless only one player is left
     playerDidDisconnect(p: Player): void {
-        if (this.players.length == 1) return; //Need to implement destroy game
+        //Implement to destroy game in the future
+        if (this.players.length == 1) {
+            this.currentState = GameState.EMPTY;
+            this.players = [];
+            return;
+        }
         if (this.isReady || this.isNotStarted) {
             this.currentState = GameState.NOT_STARTED;
         } else if (this.isOngoing || this.isPaused) {
@@ -343,5 +348,9 @@ export class Game implements IGame {
 
     get isPaused(): boolean {
         return this.currentState === GameState.PAUSED;
+    }
+
+    get isEmpty(): boolean {
+        return this.currentState === GameState.EMPTY;
     }
 }

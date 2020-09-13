@@ -75,7 +75,7 @@ export interface IGame {
 
     // Player events
     playerDidConnect(p: Player): boolean;
-    playerDidDisconnect(p: Player): void;
+    playerDidDisconnect(p: Player): GameState;
     playerDidSelectCoordinate(p: Player, c: Coordinate): boolean; //Also check if game is finished after each move
     playerDidSelectPause(): boolean;
 

@@ -4,6 +4,7 @@ import socket from 'socket.io';
 import { Game } from './game';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
+import { GameState } from './types/game.interface';
 
 let app = express()
     .use(cors())
@@ -36,15 +37,15 @@ let proxyHandler: ProxyHandler<Game[]> = {
     },
     set: function (target: Game[], property: number, value, receiver) {
         target[property] = value;
-        let filtered = target.filter((g) => {
-            if (!g.isEmpty) {
-                return true;
-            } else {
-                deleteByValue(_games, g.identifier);
-                return false;
-            }
-        });
-        target = filtered;
+        // let filtered = target.filter((g) => {
+        //     if (!g.isEmpty) {
+        //         return true;
+        //     } else {
+        //         deleteByValue(_games, g.identifier);
+        //         return false;
+        //     }
+        // });
+        // target = filtered;
         return true;
     },
 };
@@ -132,7 +133,9 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             let player = game.players.find((p) => p.id === playerID);
 
             // Run
-            game.playerDidDisconnect(player);
+            let currentGameState = game.playerDidDisconnect(player);
+            delete _games[playerID];
+            if (currentGameState == GameState.EMPTY) games.splice(games.indexOf(game), 1);
         }
     });
 

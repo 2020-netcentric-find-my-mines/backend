@@ -304,12 +304,12 @@ export class Game implements IGame {
     }
 
     //Can continue playing unless only one player is left
-    playerDidDisconnect(p: Player): void {
+    playerDidDisconnect(p: Player): GameState {
         //Implement to destroy game in the future
         if (this.players.length == 1) {
             this.changeGameState(GameState.EMPTY);
             this.players = [];
-            return;
+            return this.currentState;
         }
         if (this.isReady) {
             this.changeGameState(GameState.NOT_STARTED);
@@ -324,9 +324,10 @@ export class Game implements IGame {
             if (this.players.length == 1) {
                 this.finish();
             }
-            return;
+            return this.currentState;
         }
         this.players.splice(this.players.indexOf(p), 1); // Will perform only for isReady, isNotStarted, isFinished
+        return this.currentState;
     }
 
     playerDidSelectCoordinate(p: Player, c: Coordinate): boolean {

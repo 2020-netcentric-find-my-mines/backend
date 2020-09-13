@@ -144,8 +144,8 @@ export class Game implements IGame {
     selectFirstPlayer(): Player {
         let n: number = Math.floor(Math.random() * this.players.length);
         this.currentPlayerIndex = n;
-        let p: Player = this.players[this.currentPlayerIndex]
-        this.emitEvent(SocketEvent.NEXT_PLAYER, p)
+        let p: Player = this.players[this.currentPlayerIndex];
+        this.emitEvent(SocketEvent.NEXT_PLAYER, p);
         return p;
     }
 
@@ -161,8 +161,8 @@ export class Game implements IGame {
 
     selectNextPlayer(): Player {
         this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.length;
-        let p: Player = this.players[this.currentPlayerIndex]
-        this.emitEvent(SocketEvent.NEXT_PLAYER, p)
+        let p: Player = this.players[this.currentPlayerIndex];
+        this.emitEvent(SocketEvent.NEXT_PLAYER, p);
         return p;
     }
 

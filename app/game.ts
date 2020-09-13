@@ -62,6 +62,7 @@ export class Game implements IGame {
     }
 
     startTimer(): void {
+        this.currentTime = this.waitTime
         // @ts-ignore
         this.timer = new Timer(() => {
             this.tick();
@@ -86,7 +87,7 @@ export class Game implements IGame {
 
     boardWidth = 6;
     boardHeight = 6;
-    currentTime = 0;
+    currentTime = -1;
     numberOfBombs = 3;
     numberOfBombsFound = 0;
     numberOfPlayers = 2;
@@ -183,27 +184,33 @@ export class Game implements IGame {
         return false;
     }
 
-    //In case we want to notify who needs to play right now
+    // In case we want to notify who needs to play right now
     getCurrentPlayer(): Player {
         return this.currentPlayer;
     }
 
     resetTimer(): boolean {
         if (!this.isOngoing || !this.isPaused || !this.isFinished) return false;
+        this.currentTime = this.waitTime
+        this.emitEvent(SocketEvent.TICK, this.currentTime)
         this.timer.reset(this.waitTime * 1000);
         return true;
     }
 
     tick(): void {
-        this.nextTurn(); //Go to the next person if the person does not choose tile in time
+        this.currentTime = this.currentTime - 1
+        this.emitEvent(SocketEvent.TICK, this.currentTime)
+        // Go to the next person if the person does not choose tile in time
+        this.nextTurn();
     }
 
     finish(): boolean {
-        //Will be called only from playerDidSelectCoordinate
+        // Will be called only from playerDidSelectCoordinate
         this.timer.stop();
         this.currentState = GameState.FINISHED;
         let winner: Player = this.getWinner();
-        /*Do some action in the future
+
+        /* Do some action in the future
 
 
         */

@@ -30,7 +30,7 @@ export interface IGame {
     numberOfBombs: number; // Number of bombs
     maxNumberOfPlayers: number; //Maximum number of players that can play the game
     numberOfBombsFound: number; // Number of bombs found
-    scoreMultiplier: number; // Score multiplier (Default: 1)    
+    scoreMultiplier: number; // Score multiplier (Default: 1)
 
     generateGameID(): string; // Create random string
 

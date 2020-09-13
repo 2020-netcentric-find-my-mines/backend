@@ -3,4 +3,5 @@ export interface Coordinate {
     y: number;
     isBomb: boolean;
     isSelected: boolean;
+    setBomb: Function;
 }

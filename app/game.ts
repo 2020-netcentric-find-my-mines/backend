@@ -24,7 +24,8 @@ function Timer(fn: Function, t: number) {
         return this;
     };
 
-    // Start with new or original configuration, stop current interval
+    // Start with new or original configurations
+    // Stop current interval
     this.reset = function (newT = t) {
         t = newT;
         return this.stop().start();
@@ -52,7 +53,6 @@ class Box implements Coordinate {
 }
 
 export class Game implements IGame {
-
     socket: Socket;
 
     timer: any = null;
@@ -96,8 +96,8 @@ export class Game implements IGame {
 
     generateGameID(): string {
         let result: string = '';
-        let charac = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-        //Generate random string of 7 characters
+        let charac = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        // Generate random string of 7 characters
         for (let i = 0; i < 7; i++) {
             result += charac.charAt(Math.floor(Math.random() * charac.length));
         }
@@ -134,7 +134,9 @@ export class Game implements IGame {
             p.score = 0;
         }
         this.populateBoard(this.boardWidth, this.boardHeight);
-        //Deal with special case where we finished game and want to reset but not have enough players to play
+
+        // Deal with special case where we finished game
+        // and want to reset but not have enough players to play
         if (this.isFinished && this.players.length <= 1) {
             this.currentState = GameState.NOT_STARTED;
             return true;
@@ -152,7 +154,8 @@ export class Game implements IGame {
     }
 
     start(): boolean {
-        if (this.players.length <= 1 || !this.isReady || !this.isNotStarted) return false;
+        if (this.players.length <= 1 || !this.isReady || !this.isNotStarted)
+            return false;
         this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();
         this.currentState = GameState.ONGOING;
@@ -162,7 +165,8 @@ export class Game implements IGame {
 
     selectNextPlayer(): Player {
         this.currentPlayerIndex += 1;
-        if (this.currentPlayerIndex >= this.players.length) this.currentPlayerIndex = 0;
+        if (this.currentPlayerIndex >= this.players.length)
+            this.currentPlayerIndex = 0;
         return this.players[this.currentPlayerIndex];
     }
 
@@ -171,7 +175,7 @@ export class Game implements IGame {
         for (let i = 1; i < this.players.length; i++) {
             if (this.players[i].score > winner.score) winner = this.players[i];
         }
-        return winner
+        return winner;
     }
 
     private hasAllBombsFound(): boolean {
@@ -207,7 +211,12 @@ export class Game implements IGame {
     }
 
     setNumberOfBombs(n: number): boolean {
-        if (n > 0 && n % 2 == 1 && this.isValidBoard(n, this.boardWidth, this.boardHeight) && (this.isNotStarted || this.isReady)) {
+        if (
+            n > 0 &&
+            n % 2 == 1 &&
+            this.isValidBoard(n, this.boardWidth, this.boardHeight) &&
+            (this.isNotStarted || this.isReady)
+        ) {
             this.numberOfBombs = n;
             return true;
         }
@@ -215,7 +224,11 @@ export class Game implements IGame {
     }
 
     setMaxPlayers(n: number): boolean {
-        if (n > 1 && n >= this.players.length && (this.isNotStarted || this.isReady)) {
+        if (
+            n > 1 &&
+            n >= this.players.length &&
+            (this.isNotStarted || this.isReady)
+        ) {
             this.maxNumberOfPlayers = n;
             if (this.isRoomFull) this.currentState = GameState.READY;
             else this.currentState = GameState.NOT_STARTED;
@@ -230,7 +243,12 @@ export class Game implements IGame {
     }
 
     setBoardSize(w: number, h: number): boolean {
-        if (w > 0 && h > 0 && this.isValidBoard(this.numberOfBombs, w, h) && (this.isNotStarted || this.isReady)) {
+        if (
+            w > 0 &&
+            h > 0 &&
+            this.isValidBoard(this.numberOfBombs, w, h) &&
+            (this.isNotStarted || this.isReady)
+        ) {
             this.boardWidth = w;
             this.boardHeight = h;
             return true;
@@ -244,7 +262,11 @@ export class Game implements IGame {
     }
 
     playerDidConnect(p: Player): boolean {
-        if (p != null && (this.isNotStarted || this.isFinished) && this.players.length < this.maxNumberOfPlayers) {
+        if (
+            p != null &&
+            (this.isNotStarted || this.isFinished) &&
+            this.players.length < this.maxNumberOfPlayers
+        ) {
             p.score = 0;
             this.players.push(p);
             if (this.isRoomFull) this.currentState = GameState.READY;
@@ -258,8 +280,7 @@ export class Game implements IGame {
         if (this.players.length == 1) return; //Need to implement destroy game
         if (this.isReady || this.isNotStarted) {
             this.currentState = GameState.NOT_STARTED;
-        }
-        else if (this.isOngoing || this.isPaused) {
+        } else if (this.isOngoing || this.isPaused) {
             if (this.currentPlayer == p) {
                 this.nextTurn();
                 if (this.isPaused) {
@@ -274,7 +295,8 @@ export class Game implements IGame {
     }
 
     playerDidSelectCoordinate(p: Player, c: Coordinate): boolean {
-        if (p == null || c == null || c.isSelected == true || !this.isOngoing) return false;
+        if (p == null || c == null || c.isSelected == true || !this.isOngoing)
+            return false;
         c.isSelected = true;
         if (c.isBomb) {
             this.currentPlayer.score += 1;
@@ -284,7 +306,6 @@ export class Game implements IGame {
         this.nextTurn();
         return true;
     }
-
 
     private nextTurn(): Player {
         let p: Player = this.selectNextPlayer();
@@ -298,8 +319,7 @@ export class Game implements IGame {
         if (this.isOngoing) {
             this.currentState = GameState.PAUSED;
             this.timer.stop();
-        }
-        else {
+        } else {
             this.currentState = GameState.ONGOING;
             this.timer.start();
         }

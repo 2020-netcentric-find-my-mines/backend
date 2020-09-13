@@ -3,6 +3,7 @@ import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
+import chalk from 'chalk'
 
 function Timer(fn: Function, t: number) {
     var timer = setInterval(fn, t);
@@ -96,6 +97,16 @@ export class Game implements IGame {
         });
     }
 
+    addPlayer(playerID: string, name = ""): void {
+        let player: Player = {
+            id: playerID,
+            name,
+            score: 0
+        }
+
+        this.players.push(player)
+    }
+
     generateGameID(): string {
         let result: string = '';
         let charac = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -155,6 +166,10 @@ export class Game implements IGame {
         let p: Player = this.players[this.currentPlayerIndex];
         this.emitEvent(SocketEvent.NEXT_PLAYER, p);
         return p;
+    }
+
+    log(...args: any[]): void {
+        console.log(chalk.bgGreen(chalk.black(`game.ts/${this.identifier}`)), ...args)
     }
 
     start(): boolean {
@@ -315,6 +330,7 @@ export class Game implements IGame {
     }
 
     playerDidSelectCoordinate(p: Player, c: Coordinate): boolean {
+        this.log("playerDidSelectCoordinate", p, c)
         if (p == null || c == null || c.isSelected == true || !this.isOngoing) {
             this.emitEvent(SocketEvent.COORDINATED_SELECTED, {
                 isOK: false,

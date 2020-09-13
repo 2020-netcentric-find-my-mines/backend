@@ -95,6 +95,77 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         // Run
         game.playerDidDisconnect(player);
     });
+
+    socket.on("SET_NUMBER_OF_BOMB", (amount: number) => {
+        console.log("There will be \(amount) number of bomb");
+
+        let gameID = _games[playerID];
+
+        // Find game
+        let game = games.find((g) => g.identifier === gameID);
+
+        // Configure number of bomb
+        game.setNumberOfBombs(amount);
+    });
+
+    socket.on("PAUSE", () => {
+        console.log("The game will be pause");
+
+        let gameID = _games[playerID];
+
+        // Find game
+        let game = games.find((g) => g.identifier === gameID);
+
+        // Pause the game
+        let pause: boolean = game.playerDidSelectPause();
+
+        if (!pause) {
+            socket.emit("ERROR", "Error pausing game")
+            console.log("Error pausing the game");
+        }
+    });
+
+    socket.on("SET_BOARD_SIZE", (w: number, h: number) => {
+        let gameID = _games[playerID];
+
+        // Find game
+        let game = games.find((g) => g.identifier === gameID);
+
+        // Set board size
+        let set = game.setBoardSize(w, h);
+
+        if (!set) {
+            socket.emit("ERROR", "Error setting board size")
+            console.log("Error setting board size");
+        }
+    });
+
+    socket.on("SET_MAX_PLAYER", (amount: number) => {
+        let gameID = _games[playerID];
+
+        // Find game
+        let game = games.find((g) => g.identifier === gameID);
+
+        // Set max player
+        let set = game.setMaxPlayers(amount);
+
+        if (!set) {
+            socket.emit("ERROR", "Error setting max player");
+            console.log("Error setting max player");
+        }
+    });
+
+    // To show other player whose turn is it
+    socket.on("GET_CURRENT_PLAYER", () => {
+        let gameID = _games[playerID];
+
+        // Find game
+        let game = games.find((g) => g.identifier === gameID);
+
+        let result = game.getCurrentPlayer();
+
+        socket.emit("CURRENT_PLAYER", result);
+    });
 });
 
 // app.listen(3000, () => console.log('Find My Mines!'))

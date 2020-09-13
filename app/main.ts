@@ -62,6 +62,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let game = new Game(socket);
         games.push(game);
         socket.join(game.identifier);
+        console.log("✨ [CREATE_GAME] Game", game.identifier)
+        console.log("✨ [CREATE_GAME] Player", playerID)
     });
 
     // Join an existing game
@@ -74,17 +76,23 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     socket.on(SocketEvent.SELECT_COORDINATE, (coordinate: Coordinate) => {
+        console.log("✨ [SELECT_COORDINATE] Player", playerID)
         let gameID = _games[playerID];
+        console.log("✨ [SELECT_COORDINATE] _games", _games)
 
         // Find game
         let game = games.find((g) => g.identifier === gameID);
 
-        // Find player
-        let player = game.players.find((p) => p.id === playerID);
+        if (game) {
+            console.log("✨ [SELECT_COORDINATE] Game", game.identifier)
 
-        // Run
-        if (game && player && coordinate) {
-            game.playerDidSelectCoordinate(player, coordinate);
+            // Find player
+            let player = game.players.find((p) => p.id === playerID);
+
+            // Run
+            if (game && player && coordinate) {
+                game.playerDidSelectCoordinate(player, coordinate);
+            }
         }
     });
 

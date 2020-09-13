@@ -9,7 +9,7 @@ export enum GameState {
     ONGOING = 'ONGOING',
     PAUSED = 'PAUSED',
     FINISHED = 'FINISHED',
-    EMPTY = 'EMPTY',
+    EMPTY = 'EMPTY', // No players in game, ready to be deleted
 }
 
 export interface IGame {

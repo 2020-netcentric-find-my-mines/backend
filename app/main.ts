@@ -1,7 +1,5 @@
 import express from 'express';
-import * as http from 'http';
 import socket from 'socket.io';
-import { servicesVersion } from 'typescript';
 import { Game } from './game';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
@@ -64,7 +62,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     // Join an existing game
-    socket.on(SocketEvent.JOIN_GAME, (gameID) => {});
+    socket.on(SocketEvent.JOIN_GAME, (gameID) => { });
 
     // Quick match
     socket.on(SocketEvent.QUICK_MATCH, () => {

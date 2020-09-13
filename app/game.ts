@@ -79,7 +79,7 @@ export class Game implements IGame {
     identifier = this.generateGameID();
     coordinates: Coordinate[] = [];
     players: Player[] = [];
-    currentPlayer: Player | null = null;
+    currentPlayer: any = null;
     private currentPlayerIndex: number = null;
     currentState = GameState.NOT_STARTED;
 

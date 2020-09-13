@@ -16,12 +16,11 @@ const io = socket(server, options);
 const _games: Record<string, string> = {};
 
 // All games
-let proxyHandler = {
+let proxyHandler: ProxyHandler<Game[]> = {
     get: function (target: Game[], property: number) {
         return target[property];
     },
-    // @ts-ignore
-    set: function (target: Game[], property, value, receiver) {
+    set: function (target: Game[], property: number, value, receiver) {
         target[property] = value;
         let filtered = target.filter((g) => !g.isEmpty);
         target = filtered;
@@ -45,7 +44,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     // Join an existing game
-    socket.on(SocketEvent.JOIN_GAME, (gameID) => {});
+    socket.on(SocketEvent.JOIN_GAME, (gameID) => { });
 
     // Quick match
     socket.on(SocketEvent.QUICK_MATCH, () => {

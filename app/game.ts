@@ -45,7 +45,6 @@ class Box implements Coordinate {
 }
 
 export class Game implements IGame {
-
     socket: Socket;
 
     timer: any = null;
@@ -55,7 +54,7 @@ export class Game implements IGame {
     }
 
     startTimer(): void {
-        this.currentTime = this.waitTime
+        this.currentTime = this.waitTime;
         // @ts-ignore
         this.timer = new Timer(() => {
             this.tick();
@@ -91,7 +90,7 @@ export class Game implements IGame {
     private changeGameState(to: GameState): void {
         this.emitEvent(SocketEvent.CHANGED_GAMESTATE, {
             from: this.currentState,
-            to: to
+            to: to,
         });
         this.currentState = to;
     }
@@ -168,7 +167,8 @@ export class Game implements IGame {
     }
 
     selectNextPlayer(): Player {
-        this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.length;
+        this.currentPlayerIndex =
+            ++this.currentPlayerIndex % this.players.length;
         let p: Player = this.players[this.currentPlayerIndex];
         this.emitEvent(SocketEvent.NEXT_PLAYER, p);
         return p;
@@ -194,15 +194,15 @@ export class Game implements IGame {
 
     resetTimer(): boolean {
         if (!this.isOngoing || !this.isPaused || !this.isFinished) return false;
-        this.currentTime = this.waitTime
-        this.emitEvent(SocketEvent.TICK, this.currentTime)
+        this.currentTime = this.waitTime;
+        this.emitEvent(SocketEvent.TICK, this.currentTime);
         this.timer.reset(1000);
         return true;
     }
 
     tick(): void {
-        this.currentTime = this.currentTime - 1
-        this.emitEvent(SocketEvent.TICK, this.currentTime)
+        this.currentTime = this.currentTime - 1;
+        this.emitEvent(SocketEvent.TICK, this.currentTime);
         // Go to the next person if the person does not choose tile in time
         if (this.currentTime === 0) {
             this.nextTurn();
@@ -281,7 +281,7 @@ export class Game implements IGame {
         ) {
             p.score = 0;
             this.players.push(p);
-            if (this.isRoomFull)  this.changeGameState(GameState.READY);
+            if (this.isRoomFull) this.changeGameState(GameState.READY);
             return true;
         }
         return false;
@@ -309,7 +309,7 @@ export class Game implements IGame {
                 this.finish();
             }
             return;
-        } 
+        }
         this.players.splice(this.players.indexOf(p), 1); // Will perform only for isReady, isNotStarted, isFinished
     }
 

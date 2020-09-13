@@ -20,6 +20,7 @@
         "format": "prettier --write '**/*.{ts,md,json}'",
         "build": "tsc",
         "start:prod": "node dist/main.js",
-        "start:heroku": "npm run build && npm run start:prod"
+        "start:heroku": "npm run build && npm run start:prod",
+        "start": "npm run start:heroku"
     }
 }

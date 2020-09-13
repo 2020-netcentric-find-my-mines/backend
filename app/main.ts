@@ -36,7 +36,7 @@ let proxyHandler: ProxyHandler<Game[]> = {
                 deleteByValue(_games, g.identifier)
                 return false
             }
-        };
+        });
         target = filtered;
         return true;
     },

@@ -17,18 +17,20 @@ const _games: Record<string, string> = {};
 
 // All games
 let proxyHandler = {
-    get: function (target: Game[], property: number) { },
+    get: function (target: Game[], property: number) {
+        return target[property];
+    },
     // @ts-ignore
     set: function (target: Game[], property, value, receiver) {
-        target[property] = value
-        let filtered = target.filter(g => !g.isEmpty)
-        target = filtered
-        return true
-    }
-}
+        target[property] = value;
+        let filtered = target.filter((g) => !g.isEmpty);
+        target = filtered;
+        return true;
+    },
+};
 
 const __games: Game[] = [];
-const games = new Proxy(__games, proxyHandler)
+const games = new Proxy(__games, proxyHandler);
 
 // Handle all Socket.IO events
 io.on(SocketEvent.CONNECTION, (socket) => {
@@ -43,7 +45,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     // Join an existing game
-    socket.on(SocketEvent.JOIN_GAME, (gameID) => { });
+    socket.on(SocketEvent.JOIN_GAME, (gameID) => {});
 
     // Quick match
     socket.on(SocketEvent.QUICK_MATCH, () => {

@@ -74,7 +74,7 @@ export class Game implements IGame {
     identifier = this.generateGameID();
     coordinates: Coordinate[] = [];
     players: Player[] = [];
-    currentPlayer: any = null;
+    currentPlayer: Player = null;
     currentState = GameState.NOT_STARTED;
     private currentPlayerIndex: number = null;
 
@@ -144,7 +144,9 @@ export class Game implements IGame {
     selectFirstPlayer(): Player {
         let n: number = Math.floor(Math.random() * this.players.length);
         this.currentPlayerIndex = n;
-        return this.players[this.currentPlayerIndex];
+        let p: Player = this.players[this.currentPlayerIndex]
+        this.emitEvent(SocketEvent.NEXT_PLAYER, p)
+        return p;
     }
 
     start(): boolean {
@@ -159,7 +161,9 @@ export class Game implements IGame {
 
     selectNextPlayer(): Player {
         this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.length;
-        return this.players[this.currentPlayerIndex];
+        let p: Player = this.players[this.currentPlayerIndex]
+        this.emitEvent(SocketEvent.NEXT_PLAYER, p)
+        return p;
     }
 
     getWinner(): Player {

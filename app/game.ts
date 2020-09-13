@@ -201,7 +201,9 @@ export class Game implements IGame {
         this.currentTime = this.currentTime - 1
         this.emitEvent(SocketEvent.TICK, this.currentTime)
         // Go to the next person if the person does not choose tile in time
-        this.nextTurn();
+        if (this.currentTime === 0) {
+            this.nextTurn();
+        }
     }
 
     finish(): boolean {

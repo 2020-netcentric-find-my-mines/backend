@@ -428,8 +428,12 @@ export class Game implements IGame {
         // Copy object without reference
         let coordinates = cloneDeep(this.coordinates);
         coordinates.map((c) => {
-            delete c.isBomb;
-            return c;
+            if (c.isSelected) {
+                return c
+            } else {
+                c.isBomb = false;
+                return c;
+            }
         });
 
         return {

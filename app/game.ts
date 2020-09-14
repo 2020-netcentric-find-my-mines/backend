@@ -151,19 +151,19 @@ export class Game implements IGame {
     }
 
     resetBoard(): boolean {
-        if (!this.isOngoing || !this.isPaused || !this.isFinished) return false;
+        if (!this.isOngoing && !this.isPaused && !this.isFinished) return false;
         for (let p of this.players) {
             p.score = 0;
         }
-        this.populateBoard(this.boardWidth, this.boardHeight);
-
         // Deal with special case where we finished game
         // and want to reset but not have enough players to play
         if (this.isFinished && this.players.length <= 1) {
             this.changeGameState(GameState.NOT_STARTED);
             this.currentPlayer = null;
+            this.coordinates = [];
             return true;
         }
+        this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();
         this.changeGameState(GameState.ONGOING);
         this.resetTimer();
@@ -191,10 +191,32 @@ export class Game implements IGame {
         // - Game is not in READY state
         if (this.players.length <= 1 || (!this.isReady && !this.isNotStarted))
             return false;
+        if (this.coordinates.length >= 1) this.coordinates = []; //Just in case where we had played a game and use start() again
         this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();
         this.changeGameState(GameState.ONGOING);
         this.startTimer();
+        return true;
+    }
+
+    play_again(): boolean {
+        if (!this.isFinished) return false;
+        let winner: Player = this.getWinner();
+        for (let p of this.players) {
+            p.score = 0;
+        }
+        // Deal with special case where we finished game
+        // and want to reset but not have enough players to play
+        if (this.players.length == 1) {
+            this.changeGameState(GameState.NOT_STARTED);
+            this.currentPlayer = null;
+            this.coordinates = [];
+            return true;
+        }
+        this.populateBoard(this.boardWidth, this.boardHeight);
+        this.currentPlayer = winner;
+        this.changeGameState(GameState.ONGOING);
+        this.resetTimer();
         return true;
     }
 
@@ -232,7 +254,7 @@ export class Game implements IGame {
 
     resetTimer(): boolean {
         if (!this.isOngoing) return false;
-        console.log("resetTimer()")
+        console.log('resetTimer()');
         this.currentTime = this.waitTime;
         this.emitEvent(SocketEvent.TICK, this.currentTime);
         this.timer.reset(1000);
@@ -251,7 +273,7 @@ export class Game implements IGame {
 
     finish(): boolean {
         // Will be called only from playerDidSelectCoordinate
-        console.log('finish()')
+        console.log('finish()');
         this.timer.stop();
         this.changeGameState(GameState.FINISHED);
         let winner: Player = this.getWinner();
@@ -372,8 +394,10 @@ export class Game implements IGame {
         ) {
             return false;
         }
-        // let c: Coordinate = this.coordinates[x * this.boardHeight + y];
-        let c: Coordinate = this.coordinates.find(n => { return n.x === Number(x) && n.y === Number(y) })
+        let c: Coordinate = this.coordinates[
+            Number(x) * this.boardHeight + Number(y)
+        ];
+        // let c: Coordinate = this.coordinates.find(n => { return n.x === Number(x) && n.y === Number(y) })
         if (c.isSelected) return false;
         c.isSelected = true;
         if (c.isBomb) {

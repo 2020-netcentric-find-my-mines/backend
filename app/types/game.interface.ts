@@ -50,6 +50,9 @@ export interface IGame {
     // Start
     start(): boolean;
 
+    // Play again (not reset), can only be called if game is finished
+    play_again(): boolean;
+
     // Pick next player
     selectNextPlayer(): void;
 

@@ -81,7 +81,9 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         socket.join(game.identifier);
 
         sendFeedback(SocketEvent.CREATE_GAME_FEEDBACK, game, true);
-        console.log(`✨ [CREATE_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`);
+        console.log(
+            `✨ [CREATE_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`,
+        );
     });
 
     // Join an existing game
@@ -91,7 +93,9 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         if (game) {
             let success = game.addPlayer(playerID);
             if (success) {
-                console.log(`✨ [JOIN_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`);
+                console.log(
+                    `✨ [JOIN_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`,
+                );
                 socket.join(game.identifier);
                 _games[playerID] = game.identifier;
                 sendFeedback(SocketEvent.JOIN_GAME_FEEDBACK, game, true);
@@ -124,7 +128,10 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let game = findGame(playerID);
 
         if (game) {
-            console.log(`✨ [START_GAME] [Game:${game.identifier}]`, game.players);
+            console.log(
+                `✨ [START_GAME] [Game:${game.identifier}]`,
+                game.players,
+            );
 
             // Find player
             let player = game.findPlayer(playerID);
@@ -146,12 +153,54 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
+    socket.on(SocketEvent.PLAY_AGAIN, () => {
+        // Find game
+        let game = findGame(playerID);
+
+        if (game) {
+            console.log(
+                `✨ [PLAY_AGAIN] [Game:${game.identifier}]`,
+                game.players,
+            );
+
+            let didReset = game.playAgain();
+            let notEnoughPlayer = game.isNotStarted;
+
+            //Run
+            if (didReset && notEnoughPlayer) {
+                sendFeedback(
+                    SocketEvent.PLAY_AGAIN_FEEDBACK,
+                    game,
+                    true,
+                    'Board reset but not enough players to begin game',
+                );
+            } else if (didReset) {
+                sendFeedback(
+                    SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK,
+                    game,
+                    true,
+                );
+            } else {
+                sendFeedback(
+                    SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK,
+                    game,
+                    false,
+                    'Fail to play again',
+                );
+            }
+        }
+    });
+
     socket.on(SocketEvent.SELECT_COORDINATE, ({ x, y }) => {
         // Find game
         let game = findGame(playerID);
 
         if (game) {
-            console.log(`✨ [SELECT_COORDINATE] [Game:${game.identifier}]`, x, y);
+            console.log(
+                `✨ [SELECT_COORDINATE] [Game:${game.identifier}]`,
+                x,
+                y,
+            );
 
             // Find player
             let player = game.findPlayer(playerID);
@@ -205,10 +254,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let didSet = game.setNumberOfBombs(amount);
 
         if (didSet) {
-            sendFeedback(
-                SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK,
-                game,
-                true);
+            sendFeedback(SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK, game, true);
         } else {
             sendFeedback(
                 SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK,
@@ -236,7 +282,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                 'The game is paused',
             );
         } else {
-            sendFeedback(SocketEvent.PAUSE_FEEDBACK,
+            sendFeedback(
+                SocketEvent.PAUSE_FEEDBACK,
                 game,
                 false,
                 'Failed to pause the game',
@@ -256,14 +303,14 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                 SocketEvent.SET_BOARD_SIZE_FEEDBACK,
                 game,
                 true,
-                'The board size is now w: ' + w + ' and h: ' + h
+                'The board size is now w: ' + w + ' and h: ' + h,
             );
         } else {
             sendFeedback(
                 SocketEvent.SET_BOARD_SIZE_FEEDBACK,
                 game,
                 false,
-                "Failed to set board size"
+                'Failed to set board size',
             );
         }
     });
@@ -280,14 +327,14 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                 SocketEvent.SET_MAX_PLAYER_FEEDBACK,
                 game,
                 true,
-                'Max player is now ' + amount
+                'Max player is now ' + amount,
             );
         } else {
             sendFeedback(
                 SocketEvent.SET_MAX_PLAYER_FEEDBACK,
                 game,
                 false,
-                "Failed to set max player"
+                'Failed to set max player',
             );
         }
     });
@@ -300,18 +347,14 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let result = game.getCurrentPlayer();
 
         if (result) {
-            sendFeedback(
-                SocketEvent.GET_CURRENT_PLAYER_FEEDBACK,
-                game,
-                true
-            );
+            sendFeedback(SocketEvent.GET_CURRENT_PLAYER_FEEDBACK, game, true);
         } else {
             sendFeedback(
                 SocketEvent.GET_CURRENT_PLAYER_FEEDBACK,
                 game,
                 false,
-                "Failed getting current player"
-            )
+                'Failed getting current player',
+            );
         }
     });
 });

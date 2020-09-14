@@ -199,7 +199,7 @@ export class Game implements IGame {
         return true;
     }
 
-    play_again(): boolean {
+    playAgain(): boolean {
         if (!this.isFinished) return false;
         let winner: Player = this.getWinner();
         for (let p of this.players) {

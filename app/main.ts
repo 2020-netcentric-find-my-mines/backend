@@ -19,8 +19,12 @@ let app = express()
 
 const io = socket.listen(app);
 
-function privateMessage(event: SocketEvent, playerID: string, data: any) {
-    io.sockets.to(playerID).emit(event, data);
+function sendPrivateFeedback(event: SocketEvent, game: Game | null, isOK: boolean, playerID: string, message: string | null = null) {
+    io.sockets.to(playerID).emit(event, {
+        isOK,
+        data: isOK ? (game ? game.data : null) : null,
+        message
+    });
 }
 
 function sendFeedback(
@@ -70,12 +74,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         games.push(game);
         _games[playerID] = game.identifier;
         socket.join(game.identifier);
-        privateMessage(SocketEvent.CREATE_GAME_FEEDBACK, playerID, {
-            isOK: true,
-            data: game.data,
-            message: null,
-        });
 
+        sendPrivateFeedback(SocketEvent.CREATE_GAME_FEEDBACK, game, true, playerID)
         console.log('✨ [CREATE_GAME] Game', game.identifier);
         console.log('✨ [CREATE_GAME] Player', playerID);
     });
@@ -96,18 +96,11 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                 socket.join(game.identifier);
                 _games[playerID] = game.identifier;
                 sendFeedback(SocketEvent.JOIN_GAME_FEEDBACK, game, true);
-            } else
-                privateMessage(SocketEvent.JOIN_GAME_FEEDBACK, playerID, {
-                    isOK: false,
-                    data: game.data,
-                    message: 'Game is already started',
-                });
+            } else {
+                sendPrivateFeedback(SocketEvent.JOIN_GAME_FEEDBACK, null, false, playerID, 'Game is already started')
+            }
         } else {
-            privateMessage(SocketEvent.JOIN_GAME_FEEDBACK, playerID, {
-                isOK: false,
-                data: null,
-                message: 'Game not found',
-            });
+            sendPrivateFeedback(SocketEvent.JOIN_GAME_FEEDBACK, null, false, playerID, 'Game not found')
         }
     });
 
@@ -137,11 +130,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                 if (started) {
                     sendFeedback(SocketEvent.START_GAME_FEEDBACK, game, true);
                 } else {
-                    game.emitEvent(SocketEvent.START_GAME_FEEDBACK, {
-                        isOK: false,
-                        data: null,
-                        message: 'Failed to start game',
-                    });
+                    sendFeedback(SocketEvent.START_GAME_FEEDBACK, game, false, 'Failed to start game');
                 }
             }
         }
@@ -175,15 +164,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                         true,
                     );
                 } else {
-                    privateMessage(
-                        SocketEvent.SELECT_COORDINATE_FEEDBACK,
-                        playerID,
-                        {
-                            isOK: false,
-                            data: null,
-                            message: 'Failed to select coordinate',
-                        },
-                    );
+                    sendPrivateFeedback(SocketEvent.SELECT_COORDINATE_FEEDBACK, null, false, playerID, 'Failed to select coordinate')
                 }
             }
         }

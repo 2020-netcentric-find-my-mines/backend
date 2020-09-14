@@ -81,8 +81,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         socket.join(game.identifier);
 
         sendFeedback(SocketEvent.CREATE_GAME_FEEDBACK, game, true);
-        console.log('✨ [CREATE_GAME] Game', game.identifier);
-        console.log('✨ [CREATE_GAME] Player', playerID);
+        console.log(`✨ [CREATE_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`);
     });
 
     // Join an existing game
@@ -90,14 +89,9 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         console.log('✨ [JOIN_GAME] Received', gameID);
         let game = games.find((g) => g.identifier === gameID);
         if (game) {
-            console.log('✨ [JOIN_GAME] Found', game.identifier);
             let success = game.addPlayer(playerID);
             if (success) {
-                console.log(
-                    `✨ [JOIN_GAME] [Player:${playerID}]`,
-                    '->',
-                    `[Game:${game.identifier}]`,
-                );
+                console.log(`✨ [JOIN_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`);
                 socket.join(game.identifier);
                 _games[playerID] = game.identifier;
                 sendFeedback(SocketEvent.JOIN_GAME_FEEDBACK, game, true);
@@ -126,15 +120,11 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     socket.on(SocketEvent.START_GAME, () => {
-        // Start
-        console.log('✨ [START_GAME] Player', playerID);
-
         // Find game
         let game = findGame(playerID);
 
         if (game) {
-            console.log('✨ [START_GAME] Game', game.identifier);
-            console.log('✨ [START_GAME] Players', game.players);
+            console.log(`✨ [START_GAME] [Game:${game.identifier}]`, game.players);
 
             // Find player
             let player = game.findPlayer(playerID);
@@ -157,16 +147,11 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 
     socket.on(SocketEvent.SELECT_COORDINATE, (coordinate: Coordinate) => {
-        console.log('✨ [SELECT_COORDINATE] Player', playerID);
-        console.log('✨ [SELECT_COORDINATE] _games', _games);
-
         // Find game
         let game = findGame(playerID);
 
         if (game) {
-            console.log('✨ [SELECT_COORDINATE] Game', game.identifier);
-            console.log('✨ [SELECT_COORDINATE] Players', game.players);
-            console.log('✨ [SELECT_COORDINATE] Coordinate', coordinate);
+            console.log(`✨ [START_GAME] [Game:${game.identifier}]`, coordinate);
 
             // Find player
             let player = game.findPlayer(playerID);

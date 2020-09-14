@@ -4,6 +4,7 @@ import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
 import chalk from 'chalk';
+import cloneDeep from 'lodash.clonedeep'
 
 function Timer(fn: Function, t: number) {
     var timer = setInterval(fn, t);
@@ -69,6 +70,10 @@ export class Game implements IGame {
 
     emitEvent(event: SocketEvent, data: any) {
         this.server.sockets.to(this.identifier).emit(event, data);
+    }
+
+    emitPrivateEvent(event: SocketEvent, playerID: string, data: any) {
+        this.server.sockets.to(playerID).emit(event, data);
     }
 
     identifier = this.generateGameID();
@@ -343,19 +348,9 @@ export class Game implements IGame {
     playerDidSelectCoordinate(p: Player, c: Coordinate): boolean {
         this.log('playerDidSelectCoordinate', p, c);
         if (p == null || c == null || c.isSelected == true || !this.isOngoing) {
-            this.emitEvent(SocketEvent.COORDINATED_SELECTED, {
-                isOK: false,
-                coordinate: c,
-                player: p,
-            });
             return false;
         }
         c.isSelected = true;
-        this.emitEvent(SocketEvent.COORDINATED_SELECTED, {
-            isOK: true,
-            coordinate: c,
-            player: p,
-        });
         if (c.isBomb) {
             this.currentPlayer.score += 1;
             this.numberOfBombsFound += 1;
@@ -405,5 +400,22 @@ export class Game implements IGame {
 
     get isEmpty(): boolean {
         return this.currentState === GameState.EMPTY;
+    }
+
+    // Export current state
+    get data(): any {
+        // Copy object without reference
+        let coordinates = cloneDeep(this.coordinates)
+        coordinates.map(c => {
+            delete c.isBomb
+            return c
+        })
+
+        return {
+            gameID: this.identifier,
+            players: this.players,
+            coordinates: coordinates,
+            currentState: this.currentState,
+        }
     }
 }

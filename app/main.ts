@@ -55,8 +55,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         socket.join(game.identifier);
         game.emitEvent(SocketEvent.CREATE_GAME_FEEDBACK, {
             isOK: true,
-            gameID: game.identifier,
-            players: game.players,
+            data: game.data,
+            message: null
         });
 
         console.log('✨ [CREATE_GAME] Game', game.identifier);
@@ -73,16 +73,13 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                 _games[playerID] = game.identifier;
                 game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, {
                     isOK: true,
-                    gameID: game.identifier,
-                    players: game.players,
-                    // TODO: Remove `isBomb` from `game.coordinates` before emitting to client
-                    coordinates: game.coordinates,
-                    currentState: game.currentState,
+                    data: game.data,
+                    message: null
                 });
             } else
-                game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, { isOK: false });
+                game.emitPrivateEvent(SocketEvent.JOIN_GAME_FEEDBACK, playerID, { isOK: false, data: game.data, message: 'Game is already started' });
         } else {
-            game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, { isOK: false });
+            socket.to(playerID).emit(SocketEvent.JOIN_GAME_FEEDBACK, { isOK: false, data: null, message: 'Game not found' });
         }
     });
 
@@ -109,7 +106,20 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
             // Run
             if (game && player && coordinate) {
-                game.playerDidSelectCoordinate(player, coordinate);
+                let selected = game.playerDidSelectCoordinate(player, coordinate);
+                if (selected) {
+                    game.emitEvent(SocketEvent.SELECT_COORDINATE_FEEDBACK, {
+                        isOK: true,
+                        data: game.data,
+                        message: null
+                    })
+                } else {
+                    game.emitEvent(SocketEvent.SELECT_COORDINATE_FEEDBACK, {
+                        isOK: false,
+                        data: null,
+                        message: 'Failed to select coordinate'
+                    })
+                }
             }
         }
     });

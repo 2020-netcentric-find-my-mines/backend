@@ -429,7 +429,7 @@ export class Game implements IGame {
         let coordinates = cloneDeep(this.coordinates);
         coordinates.map((c) => {
             if (c.isSelected) {
-                return c
+                return c;
             } else {
                 c.isBomb = false;
                 return c;
@@ -444,7 +444,7 @@ export class Game implements IGame {
             boardWidth: this.boardWidth,
             boardHeight: this.boardHeight,
             numberOfBombs: this.numberOfBombs,
-            numberOfBombsFound: this.numberOfBombsFound
+            numberOfBombsFound: this.numberOfBombsFound,
         };
     }
 }

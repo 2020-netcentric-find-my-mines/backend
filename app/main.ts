@@ -151,7 +151,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let game = findGame(playerID);
 
         if (game) {
-            console.log(`✨ [START_GAME] [Game:${game.identifier}]`, coordinate);
+            console.log(`✨ [SELECT_COORDINATE] [Game:${game.identifier}]`, coordinate);
 
             // Find player
             let player = game.findPlayer(playerID);

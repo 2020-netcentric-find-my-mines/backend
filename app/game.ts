@@ -444,6 +444,7 @@ export class Game implements IGame {
             boardWidth: this.boardWidth,
             boardHeight: this.boardHeight,
             numberOfBombs: this.numberOfBombs,
+            numberOfBombsFound: this.numberOfBombsFound
         };
     }
 }

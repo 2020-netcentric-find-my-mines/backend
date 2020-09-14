@@ -18,6 +18,7 @@ export interface IGame {
 
     identifier: string; // Game's identifier (Same as Socket.IO's room)
     coordinates: Coordinate[]; // All coordiantes
+    selectedCoordinates: Coordinate[]; //All selected coordinates
     players: Player[]; // All players
     currentPlayer: Player | null; // Current player
     currentState: GameState; // Current game's state

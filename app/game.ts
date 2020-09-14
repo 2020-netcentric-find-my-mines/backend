@@ -82,7 +82,7 @@ export class Game implements IGame {
 
     identifier = this.generateGameID();
     coordinates: Coordinate[] = [];
-    selected_coordinates: Coordinate[] = [];
+    selectedCoordinates: Coordinate[] = [];
     players: Player[] = [];
     currentPlayer: Player = null;
     currentState = GameState.NOT_STARTED;
@@ -133,6 +133,7 @@ export class Game implements IGame {
 
     populateBoard(w: any, h?: any) {
         if (h == -1) h = w;
+        this.clearBoard();
         //Add all coordinates
         for (let x = 0; x < w; x++) {
             for (let y = 0; y < h; y++) {
@@ -151,6 +152,11 @@ export class Game implements IGame {
         }
     }
 
+    private clearBoard(): void {
+        this.coordinates = [];
+        this.selectedCoordinates = [];
+    }
+
     resetBoard(): boolean {
         if (!this.isOngoing && !this.isPaused && !this.isFinished) return false;
         for (let p of this.players) {
@@ -160,8 +166,8 @@ export class Game implements IGame {
         // and want to reset but not have enough players to play
         if (this.isFinished && this.players.length <= 1) {
             this.changeGameState(GameState.NOT_STARTED);
+            this.clearBoard();
             this.currentPlayer = null;
-            this.coordinates = [];
             return true;
         }
         this.populateBoard(this.boardWidth, this.boardHeight);
@@ -192,7 +198,6 @@ export class Game implements IGame {
         // - Game is not in READY state
         if (this.players.length <= 1 || (!this.isReady && !this.isNotStarted))
             return false;
-        if (this.coordinates.length >= 1) this.coordinates = []; //Just in case where we had played a game and use start() again
         this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();
         this.changeGameState(GameState.ONGOING);
@@ -210,8 +215,8 @@ export class Game implements IGame {
         // and want to reset but not have enough players to play
         if (this.players.length == 1) {
             this.changeGameState(GameState.NOT_STARTED);
+            this.clearBoard();
             this.currentPlayer = null;
-            this.coordinates = [];
             return true;
         }
         this.populateBoard(this.boardWidth, this.boardHeight);
@@ -401,7 +406,7 @@ export class Game implements IGame {
         // let c: Coordinate = this.coordinates.find(n => { return n.x === Number(x) && n.y === Number(y) })
         if (c.isSelected) return false;
         c.isSelected = true;
-        this.selected_coordinates.push(c);
+        this.selectedCoordinates.push(c);
         if (c.isBomb) {
             this.currentPlayer.score += 1;
             this.numberOfBombsFound += 1;
@@ -470,7 +475,7 @@ export class Game implements IGame {
         return {
             gameID: this.identifier,
             players: this.players,
-            selected_coordinates: this.selected_coordinates,
+            selectedCoordinates: this.selectedCoordinates,
             currentState: this.currentState,
             boardWidth: this.boardWidth,
             boardHeight: this.boardHeight,

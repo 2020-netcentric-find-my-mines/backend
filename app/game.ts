@@ -161,6 +161,7 @@ export class Game implements IGame {
         // and want to reset but not have enough players to play
         if (this.isFinished && this.players.length <= 1) {
             this.changeGameState(GameState.NOT_STARTED);
+            this.currentPlayer = null;
             return true;
         }
         this.currentPlayer = this.selectFirstPlayer();
@@ -188,7 +189,8 @@ export class Game implements IGame {
         // Cannot start game if:
         // - Number of players is less than 2
         // - Game is not in READY state
-        if (this.players.length <= 1 || !this.isReady) return false;
+        if (this.players.length <= 1 || !this.isReady || !this.isNotStarted)
+            return false;
         this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();
         this.changeGameState(GameState.ONGOING);
@@ -359,7 +361,13 @@ export class Game implements IGame {
 
     playerDidSelectCoordinate(p: Player, c: Coordinate): boolean {
         this.log('playerDidSelectCoordinate', p, c);
-        if (p == null || c == null || c.isSelected == true || !this.isOngoing) {
+        if (
+            p == null ||
+            c == null ||
+            c.isSelected == true ||
+            !this.isOngoing ||
+            p != this.currentPlayer
+        ) {
             return false;
         }
         c.isSelected = true;

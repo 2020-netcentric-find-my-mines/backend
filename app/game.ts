@@ -189,7 +189,7 @@ export class Game implements IGame {
         // Cannot start game if:
         // - Number of players is less than 2
         // - Game is not in READY state
-        if (this.players.length <= 1 || !this.isReady || !this.isNotStarted)
+        if (this.players.length <= 1 || (!this.isReady && !this.isNotStarted))
             return false;
         this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();

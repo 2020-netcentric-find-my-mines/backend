@@ -146,22 +146,19 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
-    socket.on(SocketEvent.SELECT_COORDINATE, (coordinate: Coordinate) => {
+    socket.on(SocketEvent.SELECT_COORDINATE, (x: number, y: number) => {
         // Find game
         let game = findGame(playerID);
 
         if (game) {
-            console.log(`✨ [SELECT_COORDINATE] [Game:${game.identifier}]`, coordinate);
+            console.log(`✨ [SELECT_COORDINATE] [Game:${game.identifier}]`, x, y);
 
             // Find player
             let player = game.findPlayer(playerID);
 
             // Run
-            if (game && player && coordinate) {
-                let selected = game.playerDidSelectCoordinate(
-                    player,
-                    coordinate,
-                );
+            if (game && player && x && y) {
+                let selected = game.playerDidSelectCoordinate(player, x, y);
                 if (selected) {
                     sendFeedback(
                         SocketEvent.SELECT_COORDINATE_FEEDBACK,

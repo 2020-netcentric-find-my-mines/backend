@@ -359,17 +359,19 @@ export class Game implements IGame {
         return this.currentState;
     }
 
-    playerDidSelectCoordinate(p: Player, c: Coordinate): boolean {
-        this.log('playerDidSelectCoordinate', p, c);
+    playerDidSelectCoordinate(p: Player, x: number, y: number): boolean {
+        this.log('playerDidSelectCoordinate', p, x, y);
         if (
             p == null ||
-            c == null ||
-            c.isSelected == true ||
+            x < 0 ||
+            y < 0 ||
             !this.isOngoing ||
             p != this.currentPlayer
         ) {
             return false;
         }
+        let c: Coordinate = this.coordinates[x * this.boardHeight + y];
+        if (c.isSelected) return false;
         c.isSelected = true;
         if (c.isBomb) {
             this.currentPlayer.score += 1;

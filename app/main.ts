@@ -191,6 +191,44 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
+    socket.on(SocketEvent.RESET_BOARD, () => {
+        // Find game
+        let game = findGame(playerID);
+
+        if (game) {
+            console.log(
+                `✨ [RESET_BOARD] [Game:${game.identifier}]`,
+                game.players,
+            );
+
+            let didReset = game.resetBoard();
+            let notEnoughPlayer = game.isNotStarted;
+
+            //Run
+            if (didReset && notEnoughPlayer) {
+                sendFeedback(
+                    SocketEvent.RESET_BOARD_FEEDBACK,
+                    game,
+                    true,
+                    'Board reset but not enough players to begin game',
+                );
+            } else if (didReset) {
+                sendFeedback(
+                    SocketEvent.RESET_BOARD_FEEDBACK,
+                    game,
+                    true,
+                );
+            } else {
+                sendFeedback(
+                    SocketEvent.RESET_BOARD_FEEDBACK,
+                    game,
+                    false,
+                    'Fail to reset board',
+                );
+            }
+        }
+    });
+
     socket.on(SocketEvent.SELECT_COORDINATE, ({ x, y }) => {
         // Find game
         let game = findGame(playerID);

@@ -205,7 +205,21 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let game = findGame(playerID);
 
         // Configure number of bomb
-        game.setNumberOfBombs(amount);
+        let didset = game.setNumberOfBombs(amount);
+
+        if (didset) {
+            game.emitEvent(SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK, {
+                isOk: true,
+                data: game.data,
+                message: "Set number of bombs to " + amount
+            })
+        } else {
+            game.emitEvent(SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK, {
+                isOK: false,
+                data: game.data,
+                message: "Error setting number of bombs"
+            });
+        }
     });
 
     socket.on(SocketEvent.PAUSE, () => {
@@ -215,11 +229,20 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let game = findGame(playerID);
 
         // Pause the game
-        let pause: boolean = game.playerDidSelectPause();
+        let isPause: boolean = game.playerDidSelectPause();
 
-        if (!pause) {
-            socket.emit('ERROR', 'Error pausing game');
-            console.log('Error pausing the game');
+        if (isPause) {
+            game.emitEvent(SocketEvent.PAUSE_FEEDBACK, {
+                isOk: true,
+                data: game.data,
+                message: "The game is paused"
+            })
+        } else {
+            game.emitEvent(SocketEvent.PAUSE_FEEDBACK, {
+                isOk: false,
+                data: game.data,
+                message: "Error pausing the game"
+            })
         }
     });
 
@@ -228,11 +251,20 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let game = findGame(playerID);
 
         // Set board size
-        let set = game.setBoardSize(w, h);
+        let didSet = game.setBoardSize(w, h);
 
-        if (!set) {
-            socket.emit('ERROR', 'Error setting board size');
-            console.log('Error setting board size');
+        if (didSet) {
+            game.emitEvent(SocketEvent.SET_BOARD_SIZE_FEEDBACK, {
+                isOk: true,
+                data: game.data,
+                message: "The board size is now w: " + w + " and h: " + h, 
+            })
+        } else {
+            game.emitEvent(SocketEvent.SET_BOARD_SIZE_FEEDBACK, {
+                isOk: false,
+                data: game.data,
+                message: "Failed to set board size"
+            })
         }
     });
 
@@ -241,11 +273,20 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let game = findGame(playerID);
 
         // Set max player
-        let set = game.setMaxPlayers(amount);
+        let didSet = game.setMaxPlayers(amount);
 
-        if (!set) {
-            socket.emit('ERROR', 'Error setting max player');
-            console.log('Error setting max player');
+        if (didSet) {
+            game.emitEvent(SocketEvent.SET_MAX_PLAYER_FEEDBACK, {
+                isOk: true,
+                data: game.data,
+                message: "Max player is now " + amount
+            })
+        } else {
+            game.emitEvent(SocketEvent.SET_MAX_PLAYER_FEEDBACK, {
+                isOk: false,
+                data: game.data,
+                message: "Failed to set max player"
+            })
         }
     });
 
@@ -256,6 +297,18 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
         let result = game.getCurrentPlayer();
 
-        socket.emit(SocketEvent.CURRENT_PLAYER, result);
+        if (result) {
+            game.emitEvent(SocketEvent.GET_CURRENT_PLAYER_FEEDBACK, {
+                isOk: true,
+                data: game.data,
+                message: "Success"
+            })
+        } else {
+            game.emitEvent(SocketEvent.GET_CURRENT_PLAYER_FEEDBACK, {
+                isOk: false,
+                data: game.data,
+                message: "Failed"
+            })
+        }
     });
 });

@@ -20,7 +20,20 @@ let app = express()
 const io = socket.listen(app);
 
 function privateMessage(event: SocketEvent, playerID: string, data: any) {
-    io.sockets.to(playerID).emit(event, data)
+    io.sockets.to(playerID).emit(event, data);
+}
+
+function sendFeedback(
+    event: SocketEvent,
+    game: Game,
+    isOK: boolean,
+    message: string | null = null,
+) {
+    game.emitEvent(event, {
+        isOK,
+        data: isOK ? game.data : null,
+        message,
+    });
 }
 
 function findGame(playerID: string): Game {
@@ -82,11 +95,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                 );
                 socket.join(game.identifier);
                 _games[playerID] = game.identifier;
-                game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, {
-                    isOK: true,
-                    data: game.data,
-                    message: null,
-                });
+                sendFeedback(SocketEvent.JOIN_GAME_FEEDBACK, game, true);
             } else
                 privateMessage(SocketEvent.JOIN_GAME_FEEDBACK, playerID, {
                     isOK: false,
@@ -126,11 +135,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             if (game && player) {
                 let started = game.start();
                 if (started) {
-                    game.emitEvent(SocketEvent.START_GAME_FEEDBACK, {
-                        isOK: true,
-                        data: game.data,
-                        message: null,
-                    });
+                    sendFeedback(SocketEvent.START_GAME_FEEDBACK, game, true);
                 } else {
                     game.emitEvent(SocketEvent.START_GAME_FEEDBACK, {
                         isOK: false,
@@ -164,17 +169,21 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                     coordinate,
                 );
                 if (selected) {
-                    game.emitEvent(SocketEvent.SELECT_COORDINATE_FEEDBACK, {
-                        isOK: true,
-                        data: game.data,
-                        message: null,
-                    });
+                    sendFeedback(
+                        SocketEvent.SELECT_COORDINATE_FEEDBACK,
+                        game,
+                        true,
+                    );
                 } else {
-                    privateMessage(SocketEvent.SELECT_COORDINATE_FEEDBACK, playerID, {
-                        isOK: false,
-                        data: null,
-                        message: 'Failed to select coordinate',
-                    });
+                    privateMessage(
+                        SocketEvent.SELECT_COORDINATE_FEEDBACK,
+                        playerID,
+                        {
+                            isOK: false,
+                            data: null,
+                            message: 'Failed to select coordinate',
+                        },
+                    );
                 }
             }
         }
@@ -205,19 +214,15 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         let game = findGame(playerID);
 
         // Configure number of bomb
-        let didset = game.setNumberOfBombs(amount);
+        let didSet = game.setNumberOfBombs(amount);
 
-        if (didset) {
-            game.emitEvent(SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK, {
-                isOk: true,
-                data: game.data,
-                message: "Set number of bombs to " + amount
-            })
+        if (didSet) {
+            sendFeedback(SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK, game, true);
         } else {
             game.emitEvent(SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK, {
                 isOK: false,
                 data: game.data,
-                message: "Error setting number of bombs"
+                message: 'Error setting number of bombs',
             });
         }
     });
@@ -235,14 +240,14 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             game.emitEvent(SocketEvent.PAUSE_FEEDBACK, {
                 isOk: true,
                 data: game.data,
-                message: "The game is paused"
-            })
+                message: 'The game is paused',
+            });
         } else {
             game.emitEvent(SocketEvent.PAUSE_FEEDBACK, {
                 isOk: false,
                 data: game.data,
-                message: "Error pausing the game"
-            })
+                message: 'Error pausing the game',
+            });
         }
     });
 
@@ -257,14 +262,14 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             game.emitEvent(SocketEvent.SET_BOARD_SIZE_FEEDBACK, {
                 isOk: true,
                 data: game.data,
-                message: "The board size is now w: " + w + " and h: " + h, 
-            })
+                message: 'The board size is now w: ' + w + ' and h: ' + h,
+            });
         } else {
             game.emitEvent(SocketEvent.SET_BOARD_SIZE_FEEDBACK, {
                 isOk: false,
                 data: game.data,
-                message: "Failed to set board size"
-            })
+                message: 'Failed to set board size',
+            });
         }
     });
 
@@ -279,14 +284,14 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             game.emitEvent(SocketEvent.SET_MAX_PLAYER_FEEDBACK, {
                 isOk: true,
                 data: game.data,
-                message: "Max player is now " + amount
-            })
+                message: 'Max player is now ' + amount,
+            });
         } else {
             game.emitEvent(SocketEvent.SET_MAX_PLAYER_FEEDBACK, {
                 isOk: false,
                 data: game.data,
-                message: "Failed to set max player"
-            })
+                message: 'Failed to set max player',
+            });
         }
     });
 
@@ -301,14 +306,14 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             game.emitEvent(SocketEvent.GET_CURRENT_PLAYER_FEEDBACK, {
                 isOk: true,
                 data: game.data,
-                message: "Success"
-            })
+                message: 'Success',
+            });
         } else {
             game.emitEvent(SocketEvent.GET_CURRENT_PLAYER_FEEDBACK, {
                 isOk: false,
                 data: game.data,
-                message: "Failed"
-            })
+                message: 'Failed',
+            });
         }
     });
 });

@@ -59,7 +59,11 @@ export class Game implements IGame {
         this.currentTime = this.waitTime;
         // @ts-ignore
         this.timer = new Timer(() => {
-            this.tick();
+            if (!this.shouldSkipTick) {
+                this.tick();
+            } else {
+                this.shouldSkipTick = false;
+            }
         }, 1000);
     }
 
@@ -181,8 +185,10 @@ export class Game implements IGame {
     }
 
     start(): boolean {
-        if (this.players.length <= 1 || !this.isReady || !this.isNotStarted)
-            return false;
+        // Cannot start game if:
+        // - Number of players is less than 2
+        // - Game is not in READY state
+        if (this.players.length <= 1 || !this.isReady) return false;
         this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();
         this.changeGameState(GameState.ONGOING);
@@ -194,7 +200,6 @@ export class Game implements IGame {
         this.currentPlayerIndex =
             ++this.currentPlayerIndex % this.players.length;
         let p: Player = this.players[this.currentPlayerIndex];
-        this.emitEvent(SocketEvent.NEXT_PLAYER, p);
         return p;
     }
 
@@ -224,7 +229,7 @@ export class Game implements IGame {
     }
 
     resetTimer(): boolean {
-        if (!this.isOngoing || !this.isPaused || !this.isFinished) return false;
+        if (!this.isOngoing) return false;
         this.currentTime = this.waitTime;
         this.emitEvent(SocketEvent.TICK, this.currentTime);
         this.timer.reset(1000);
@@ -236,6 +241,7 @@ export class Game implements IGame {
         this.emitEvent(SocketEvent.TICK, this.currentTime);
         // Go to the next person if the person does not choose tile in time
         if (this.currentTime === 0) {
+            // When `currentTime` = 0, change player
             this.nextTurn();
         }
     }
@@ -369,6 +375,7 @@ export class Game implements IGame {
     private nextTurn(): Player {
         let p: Player = this.selectNextPlayer();
         this.currentPlayer = p;
+        this.emitEvent(SocketEvent.NEXT_PLAYER, p);
         this.resetTimer();
         return p;
     }

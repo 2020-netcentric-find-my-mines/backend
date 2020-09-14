@@ -65,10 +65,17 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
     // Join an existing game
     socket.on(SocketEvent.JOIN_GAME, (gameID) => {
+        console.log('✨ [JOIN_GAME] Received', gameID);
         let game = games.find((g) => g.identifier === gameID);
         if (game) {
+            console.log('✨ [JOIN_GAME] Found', game.identifier);
             let success = game.addPlayer(playerID);
             if (success) {
+                console.log(
+                    `✨ [JOIN_GAME] [Player:${playerID}]`,
+                    '->',
+                    `[Game:${game.identifier}]`,
+                );
                 socket.join(game.identifier);
                 _games[playerID] = game.identifier;
                 game.emitEvent(SocketEvent.JOIN_GAME_FEEDBACK, {
@@ -77,15 +84,11 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                     message: null,
                 });
             } else
-                game.emitPrivateEvent(
-                    SocketEvent.JOIN_GAME_FEEDBACK,
-                    playerID,
-                    {
-                        isOK: false,
-                        data: game.data,
-                        message: 'Game is already started',
-                    },
-                );
+                socket.to(playerID).emit(SocketEvent.JOIN_GAME_FEEDBACK, {
+                    isOK: false,
+                    data: game.data,
+                    message: 'Game is already started',
+                });
         } else {
             socket.to(playerID).emit(SocketEvent.JOIN_GAME_FEEDBACK, {
                 isOK: false,

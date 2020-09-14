@@ -87,13 +87,11 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                     },
                 );
         } else {
-            socket
-                .to(playerID)
-                .emit(SocketEvent.JOIN_GAME_FEEDBACK, {
-                    isOK: false,
-                    data: null,
-                    message: 'Game not found',
-                });
+            socket.to(playerID).emit(SocketEvent.JOIN_GAME_FEEDBACK, {
+                isOK: false,
+                data: null,
+                message: 'Game not found',
+            });
         }
     });
 
@@ -101,6 +99,40 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     socket.on(SocketEvent.QUICK_MATCH, () => {
         // Join an existing game that is not started yet
         // If none, create a new game
+    });
+
+    socket.on(SocketEvent.START_GAME, () => {
+        // Start
+        console.log('✨ [START_GAME] Player', playerID);
+
+        // Find game
+        let game = findGame(playerID);
+
+        if (game) {
+            console.log('✨ [START_GAME] Game', game.identifier);
+            console.log('✨ [START_GAME] Players', game.players);
+
+            // Find player
+            let player = game.findPlayer(playerID);
+
+            // Run
+            if (game && player) {
+                let started = game.start();
+                if (started) {
+                    game.emitEvent(SocketEvent.START_GAME_FEEDBACK, {
+                        isOK: true,
+                        data: game.data,
+                        message: null,
+                    });
+                } else {
+                    game.emitEvent(SocketEvent.START_GAME_FEEDBACK, {
+                        isOK: false,
+                        data: null,
+                        message: 'Failed to start game',
+                    });
+                }
+            }
+        }
     });
 
     socket.on(SocketEvent.SELECT_COORDINATE, (coordinate: Coordinate) => {

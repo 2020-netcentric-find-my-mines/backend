@@ -186,7 +186,7 @@ export class Game implements IGame {
         this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();
         this.changeGameState(GameState.ONGOING);
-        this.start();
+        this.startTimer();
         return true;
     }
 
@@ -280,9 +280,8 @@ export class Game implements IGame {
         return false;
     }
 
-    private isRoomFull(): boolean {
-        if (this.players.length == this.maxNumberOfPlayers) return true;
-        return false;
+    private get isRoomFull(): boolean {
+        return this.players.length === this.maxNumberOfPlayers;
     }
 
     setBoardSize(w: number, h: number): boolean {
@@ -305,22 +304,29 @@ export class Game implements IGame {
     }
 
     playerDidConnect(p: Player): boolean {
+        this.log('playerDidConnect', p.id);
         if (
             p != null &&
-            (this.isNotStarted || this.isFinished) &&
+            this.isNotStarted &&
             this.players.length < this.maxNumberOfPlayers
         ) {
             p.score = 0;
             this.players.push(p);
-            if (this.isRoomFull) this.changeGameState(GameState.READY);
+            if (this.isRoomFull) {
+                this.log(
+                    'playerDidConnect',
+                    'Room is full, changing `currentState` to READY',
+                );
+                this.changeGameState(GameState.READY);
+            }
             return true;
         }
         return false;
     }
 
-    //Can continue playing unless only one player is left
+    // Can continue playing unless only one player is left
     playerDidDisconnect(p: Player): GameState {
-        //Implement to destroy game in the future
+        // Implement to destroy game in the future
         if (this.players.length == 1) {
             this.changeGameState(GameState.EMPTY);
             this.players = [];

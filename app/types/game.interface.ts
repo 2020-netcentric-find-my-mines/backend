@@ -1,4 +1,4 @@
-import { Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { SocketEvent } from '../socket-event';
 import { Coordinate } from './coordinate.interface';
 import { Player } from './player.interface';
@@ -14,7 +14,7 @@ export enum GameState {
 
 export interface IGame {
     emitEvent(event: SocketEvent, data: any): void;
-    socket: Socket;
+    server: Server;
 
     identifier: string; // Game's identifier (Same as Socket.IO's room)
     coordinates: Coordinate[]; // All coordiantes

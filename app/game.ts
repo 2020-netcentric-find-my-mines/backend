@@ -1,4 +1,4 @@
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
@@ -46,12 +46,12 @@ class Box implements Coordinate {
 }
 
 export class Game implements IGame {
-    socket: Socket;
+    server: Server;
 
     timer: any = null;
 
-    constructor(socket: Socket) {
-        this.socket = socket;
+    constructor(server: Server) {
+        this.server = server;
     }
 
     startTimer(): void {
@@ -68,7 +68,7 @@ export class Game implements IGame {
     isLocked = false;
 
     emitEvent(event: SocketEvent, data: any) {
-        this.socket.to(this.identifier).emit(event, data);
+        this.server.sockets.to(this.identifier).emit(event, data);
     }
 
     identifier = this.generateGameID();
@@ -91,7 +91,7 @@ export class Game implements IGame {
     private changeGameState(to: GameState): void {
         let fromState = this.currentState;
         this.currentState = to;
-        this.emitEvent(SocketEvent.CHANGED_GAMESTATE, {
+        this.emitEvent(SocketEvent.GAME_STATE_CHANGED, {
             from: fromState,
             to: to,
         });

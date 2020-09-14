@@ -18,14 +18,6 @@ let app = express()
     .listen(process.env.PORT || 3001);
 
 const io = socket.listen(app);
-// const io = socket(app, { origins: '*:*' });
-
-// Utilities
-// function deleteByValue(object: Record<string, string>, value: string) {
-//     for (var key in object) {
-//         if (object[key] === value) delete object[key];
-//     }
-// }
 
 function findGame(playerID: string): Game {
     let gameID = _games[playerID];
@@ -42,15 +34,6 @@ let proxyHandler: ProxyHandler<Game[]> = {
     },
     set: function (target: Game[], property: number, value, receiver) {
         target[property] = value;
-        // let filtered = target.filter((g) => {
-        //     if (!g.isEmpty) {
-        //         return true;
-        //     } else {
-        //         deleteByValue(_games, g.identifier);
-        //         return false;
-        //     }
-        // });
-        // target = filtered;
         return true;
     },
 };
@@ -65,7 +48,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
     // Create a new game
     socket.on(SocketEvent.CREATE_GAME, () => {
-        let game = new Game(socket);
+        let game = new Game(io);
         game.addPlayer(playerID);
         games.push(game);
         _games[playerID] = game.identifier;

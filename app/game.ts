@@ -232,6 +232,7 @@ export class Game implements IGame {
 
     resetTimer(): boolean {
         if (!this.isOngoing) return false;
+        console.log("resetTimer()")
         this.currentTime = this.waitTime;
         this.emitEvent(SocketEvent.TICK, this.currentTime);
         this.timer.reset(1000);
@@ -250,6 +251,7 @@ export class Game implements IGame {
 
     finish(): boolean {
         // Will be called only from playerDidSelectCoordinate
+        console.log('finish()')
         this.timer.stop();
         this.changeGameState(GameState.FINISHED);
         let winner: Player = this.getWinner();
@@ -370,7 +372,8 @@ export class Game implements IGame {
         ) {
             return false;
         }
-        let c: Coordinate = this.coordinates[x * this.boardHeight + y];
+        // let c: Coordinate = this.coordinates[x * this.boardHeight + y];
+        let c: Coordinate = this.coordinates.find(n => { return n.x === Number(x) && n.y === Number(y) })
         if (c.isSelected) return false;
         c.isSelected = true;
         if (c.isBomb) {

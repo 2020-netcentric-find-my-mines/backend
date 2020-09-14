@@ -19,10 +19,10 @@ let app = express()
 
 const io = socket.listen(app);
 
-function sendPrivateFeedback(event: SocketEvent, game: Game | null, isOK: boolean, playerID: string, message: string | null = null) {
+function sendPrivateFeedback(event: SocketEvent, playerID: string, isOK: boolean, message: string | null = null) {
     io.sockets.to(playerID).emit(event, {
         isOK,
-        data: isOK ? (game ? game.data : null) : null,
+        data: null,
         message
     });
 }
@@ -75,7 +75,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         _games[playerID] = game.identifier;
         socket.join(game.identifier);
 
-        sendPrivateFeedback(SocketEvent.CREATE_GAME_FEEDBACK, game, true, playerID)
+        sendFeedback(SocketEvent.CREATE_GAME_FEEDBACK, game, true)
         console.log('✨ [CREATE_GAME] Game', game.identifier);
         console.log('✨ [CREATE_GAME] Player', playerID);
     });
@@ -97,10 +97,10 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                 _games[playerID] = game.identifier;
                 sendFeedback(SocketEvent.JOIN_GAME_FEEDBACK, game, true);
             } else {
-                sendPrivateFeedback(SocketEvent.JOIN_GAME_FEEDBACK, null, false, playerID, 'Game is already started')
+                sendPrivateFeedback(SocketEvent.JOIN_GAME_FEEDBACK, playerID, false, 'Game is already started')
             }
         } else {
-            sendPrivateFeedback(SocketEvent.JOIN_GAME_FEEDBACK, null, false, playerID, 'Game not found')
+            sendPrivateFeedback(SocketEvent.JOIN_GAME_FEEDBACK, playerID, false, 'Game not found')
         }
     });
 
@@ -164,7 +164,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                         true,
                     );
                 } else {
-                    sendPrivateFeedback(SocketEvent.SELECT_COORDINATE_FEEDBACK, null, false, playerID, 'Failed to select coordinate')
+                    sendPrivateFeedback(SocketEvent.SELECT_COORDINATE_FEEDBACK, playerID, false, 'Failed to select coordinate')
                 }
             }
         }

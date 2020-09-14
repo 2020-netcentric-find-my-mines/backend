@@ -146,7 +146,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
-    socket.on(SocketEvent.SELECT_COORDINATE, (x: number, y: number) => {
+    socket.on(SocketEvent.SELECT_COORDINATE, ({ x, y }) => {
         // Find game
         let game = findGame(playerID);
 
@@ -206,8 +206,8 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
         if (didSet) {
             sendFeedback(
-                SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK, 
-                game, 
+                SocketEvent.SET_NUMBER_OF_BOMB_FEEDBACK,
+                game,
                 true);
         } else {
             sendFeedback(

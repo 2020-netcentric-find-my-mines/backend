@@ -82,6 +82,7 @@ export class Game implements IGame {
 
     identifier = this.generateGameID();
     coordinates: Coordinate[] = [];
+    selected_coordinates: Coordinate[] = [];
     players: Player[] = [];
     currentPlayer: Player = null;
     currentState = GameState.NOT_STARTED;
@@ -400,6 +401,7 @@ export class Game implements IGame {
         // let c: Coordinate = this.coordinates.find(n => { return n.x === Number(x) && n.y === Number(y) })
         if (c.isSelected) return false;
         c.isSelected = true;
+        this.selected_coordinates.push(c);
         if (c.isBomb) {
             this.currentPlayer.score += 1;
             this.numberOfBombsFound += 1;
@@ -455,20 +457,20 @@ export class Game implements IGame {
     // Export current state
     get data(): any {
         // Copy object without reference
-        let coordinates = cloneDeep(this.coordinates);
-        coordinates.map((c) => {
-            if (c.isSelected) {
-                return c;
-            } else {
-                c.isBomb = false;
-                return c;
-            }
-        });
+        // let coordinates = cloneDeep(this.coordinates);
+        // coordinates.map((c) => {
+        //     if (c.isSelected) {
+        //         return c;
+        //     } else {
+        //         c.isBomb = false;
+        //         return c;
+        //     }
+        // });
 
         return {
             gameID: this.identifier,
             players: this.players,
-            coordinates: coordinates,
+            selected_coordinates: this.selected_coordinates,
             currentState: this.currentState,
             boardWidth: this.boardWidth,
             boardHeight: this.boardHeight,

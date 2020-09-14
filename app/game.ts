@@ -4,7 +4,7 @@ import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
 import chalk from 'chalk';
-import cloneDeep from 'lodash.clonedeep'
+import cloneDeep from 'lodash.clonedeep';
 
 function Timer(fn: Function, t: number) {
     var timer = setInterval(fn, t);
@@ -405,17 +405,17 @@ export class Game implements IGame {
     // Export current state
     get data(): any {
         // Copy object without reference
-        let coordinates = cloneDeep(this.coordinates)
-        coordinates.map(c => {
-            delete c.isBomb
-            return c
-        })
+        let coordinates = cloneDeep(this.coordinates);
+        coordinates.map((c) => {
+            delete c.isBomb;
+            return c;
+        });
 
         return {
             gameID: this.identifier,
             players: this.players,
             coordinates: coordinates,
             currentState: this.currentState,
-        }
+        };
     }
 }

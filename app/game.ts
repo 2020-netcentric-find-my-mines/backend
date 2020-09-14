@@ -437,6 +437,9 @@ export class Game implements IGame {
             players: this.players,
             coordinates: coordinates,
             currentState: this.currentState,
+            boardWidth: this.boardWidth,
+            boardHeight: this.boardHeight,
+            numberOfBombs: this.numberOfBombs,
         };
     }
 }

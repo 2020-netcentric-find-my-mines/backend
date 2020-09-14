@@ -213,7 +213,7 @@ export class Game implements IGame {
         return winner;
     }
 
-    private hasAllBombsFound(): boolean {
+    private get hasAllBombsFound(): boolean {
         if (this.numberOfBombs === this.numberOfBombsFound) return true;
         return false;
     }

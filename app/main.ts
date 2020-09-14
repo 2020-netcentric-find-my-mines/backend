@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import socket from 'socket.io';
+import socket, { Socket } from 'socket.io';
 import { Game } from './game';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
@@ -18,6 +18,10 @@ let app = express()
     .listen(process.env.PORT || 3001);
 
 const io = socket.listen(app);
+
+function privateMessage(event: SocketEvent, playerID: string, data: any) {
+    io.sockets.to(playerID).emit(event, data)
+}
 
 function findGame(playerID: string): Game {
     let gameID = _games[playerID];
@@ -53,7 +57,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         games.push(game);
         _games[playerID] = game.identifier;
         socket.join(game.identifier);
-        game.emitEvent(SocketEvent.CREATE_GAME_FEEDBACK, {
+        privateMessage(SocketEvent.CREATE_GAME_FEEDBACK, playerID, {
             isOK: true,
             data: game.data,
             message: null,
@@ -84,13 +88,13 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                     message: null,
                 });
             } else
-                socket.to(playerID).emit(SocketEvent.JOIN_GAME_FEEDBACK, {
+                privateMessage(SocketEvent.JOIN_GAME_FEEDBACK, playerID, {
                     isOK: false,
                     data: game.data,
                     message: 'Game is already started',
                 });
         } else {
-            socket.to(playerID).emit(SocketEvent.JOIN_GAME_FEEDBACK, {
+            privateMessage(SocketEvent.JOIN_GAME_FEEDBACK, playerID, {
                 isOK: false,
                 data: null,
                 message: 'Game not found',
@@ -166,7 +170,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                         message: null,
                     });
                 } else {
-                    game.emitEvent(SocketEvent.SELECT_COORDINATE_FEEDBACK, {
+                    privateMessage(SocketEvent.SELECT_COORDINATE_FEEDBACK, playerID, {
                         isOK: false,
                         data: null,
                         message: 'Failed to select coordinate',

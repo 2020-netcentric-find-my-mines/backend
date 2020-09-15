@@ -53,6 +53,9 @@ function findGame(playerID: string): Game {
 // Mapping Player ID -> Game ID
 const _games: Record<string, string> = {};
 
+// Mapping PlayerID -> Name
+const _players: Record<string, string> = {};
+
 // All games
 let proxyHandler: ProxyHandler<Game[]> = {
     get: function (target: Game[], property: number) {
@@ -71,6 +74,24 @@ const games = new Proxy(__games, proxyHandler);
 io.on(SocketEvent.CONNECTION, (socket) => {
     console.log('🎉 User', socket.id);
     let playerID = socket.id;
+
+    socket.on(SocketEvent.SET_PLAYER_NAME, (name: string) => {
+        _players[playerID] = name
+
+        // If player is currently in game
+        let game = findGame(playerID);
+
+        if (game) {
+            let didSet = game.setPlayerName(playerID, name)
+            if (didSet) {
+                sendFeedback(SocketEvent.SET_PLAYER_NAME_FEEDBACK, game, true)
+            } else {
+                sendPrivateFeedback(SocketEvent.SET_PLAYER_NAME_FEEDBACK, playerID, false, 'Failed to set player name')
+            }
+        } else {
+            sendPrivateFeedback(SocketEvent.SET_PLAYER_NAME_FEEDBACK, playerID, true)
+        }
+    })
 
     // Create a new game
     socket.on(SocketEvent.CREATE_GAME, () => {
@@ -91,7 +112,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         console.log('✨ [JOIN_GAME] Received', gameID);
         let game = games.find((g) => g.identifier === gameID);
         if (game) {
-            let success = game.addPlayer(playerID);
+            let success = game.addPlayer(playerID, _players[playerID] ?? null);
             if (success) {
                 console.log(
                     `✨ [JOIN_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`,

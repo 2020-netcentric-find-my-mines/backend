@@ -233,6 +233,15 @@ export class Game implements IGame {
         return p;
     }
 
+    setPlayerName(playerID: string, name: string): boolean {
+        let player = this.players.find(p => p.id === playerID)
+        if (player) {
+            player.name = name
+            return true
+        }
+        return false
+    }
+
     getWinner(): Player {
         let winner: Player = this.players[0];
         for (let i = 1; i < this.players.length; i++) {

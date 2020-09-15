@@ -141,7 +141,28 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     // Quick match
     socket.on(SocketEvent.QUICK_MATCH, () => {
         // Join an existing game that is not started yet
-        // If none, create a new game
+        let game = __games.find(g => g.isNotStarted)
+
+        // Game found
+        if (game) {
+            let success = game.addPlayer(playerID, _players[playerID] ?? null);
+            if (success) {
+                // Joined
+                console.log(
+                    `✨ [JOIN_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`,
+                );
+                socket.join(game.identifier);
+                _games[playerID] = game.identifier;
+                sendFeedback(SocketEvent.QUICK_MATCH_FEEDBACK, game, true);
+            }
+        } else {
+            sendPrivateFeedback(
+                SocketEvent.QUICK_MATCH_FEEDBACK,
+                playerID,
+                false,
+                'Game not found',
+            );
+        }
     });
 
     socket.on(SocketEvent.START_GAME, () => {

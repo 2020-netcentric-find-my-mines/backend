@@ -76,22 +76,31 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     let playerID = socket.id;
 
     socket.on(SocketEvent.SET_PLAYER_NAME, (name: string) => {
-        _players[playerID] = name
+        _players[playerID] = name;
 
         // If player is currently in game
         let game = findGame(playerID);
 
         if (game) {
-            let didSet = game.setPlayerName(playerID, name)
+            let didSet = game.setPlayerName(playerID, name);
             if (didSet) {
-                sendFeedback(SocketEvent.SET_PLAYER_NAME_FEEDBACK, game, true)
+                sendFeedback(SocketEvent.SET_PLAYER_NAME_FEEDBACK, game, true);
             } else {
-                sendPrivateFeedback(SocketEvent.SET_PLAYER_NAME_FEEDBACK, playerID, false, 'Failed to set player name')
+                sendPrivateFeedback(
+                    SocketEvent.SET_PLAYER_NAME_FEEDBACK,
+                    playerID,
+                    false,
+                    'Failed to set player name',
+                );
             }
         } else {
-            sendPrivateFeedback(SocketEvent.SET_PLAYER_NAME_FEEDBACK, playerID, true)
+            sendPrivateFeedback(
+                SocketEvent.SET_PLAYER_NAME_FEEDBACK,
+                playerID,
+                true,
+            );
         }
-    })
+    });
 
     // Create a new game
     socket.on(SocketEvent.CREATE_GAME, () => {
@@ -141,7 +150,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     // Quick match
     socket.on(SocketEvent.QUICK_MATCH, () => {
         // Join an existing game that is not started yet
-        let game = __games.find(g => g.isNotStarted)
+        let game = __games.find((g) => g.isNotStarted);
 
         // Game found
         if (game) {
@@ -255,11 +264,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
                     'Board reset but not enough players to begin game',
                 );
             } else if (didReset) {
-                sendFeedback(
-                    SocketEvent.RESET_BOARD_FEEDBACK,
-                    game,
-                    true,
-                );
+                sendFeedback(SocketEvent.RESET_BOARD_FEEDBACK, game, true);
             } else {
                 sendFeedback(
                     SocketEvent.RESET_BOARD_FEEDBACK,

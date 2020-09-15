@@ -4,7 +4,6 @@ import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
 import chalk from 'chalk';
-import cloneDeep from 'lodash.clonedeep';
 
 function Timer(fn: Function, t: number) {
     var timer = setInterval(fn, t);
@@ -134,14 +133,14 @@ export class Game implements IGame {
     populateBoard(w: any, h?: any) {
         if (h == -1) h = w;
         this.clearBoard();
-        //Add all coordinates
+        // Add all coordinates
         for (let x = 0; x < w; x++) {
             for (let y = 0; y < h; y++) {
                 let tile: Coordinate = new Box(x, y);
                 this.coordinates.push(tile);
             }
         }
-        //Find and set bomb tiles
+        // Find and set bomb tiles
         let tempArr: number[] = [];
         while (tempArr.length < this.numberOfBombs) {
             let n: number = Math.floor(Math.random() * w * h);
@@ -470,17 +469,6 @@ export class Game implements IGame {
 
     // Export current state
     get data(): any {
-        // Copy object without reference
-        // let coordinates = cloneDeep(this.coordinates);
-        // coordinates.map((c) => {
-        //     if (c.isSelected) {
-        //         return c;
-        //     } else {
-        //         c.isBomb = false;
-        //         return c;
-        //     }
-        // });
-
         return {
             gameID: this.identifier,
             players: this.players,

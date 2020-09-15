@@ -149,7 +149,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             if (success) {
                 // Joined
                 console.log(
-                    `✨ [JOIN_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`,
+                    `✨ [QUICK_MATCH] [Player:${playerID}] -> [Game:${game.identifier}]`,
                 );
                 socket.join(game.identifier);
                 _games[playerID] = game.identifier;

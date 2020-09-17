@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { Player } from './types/player.interface'
 
-const CLOUD_FUNCTIONS = ''
+const CLOUD_FUNCTIONS = 'https://asia-southeast2-findmymines.cloudfunctions.net'
 
 export const incrementUserScore = async (player: Player) => {
     try {

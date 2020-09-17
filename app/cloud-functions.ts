@@ -6,7 +6,7 @@ const CLOUD_FUNCTIONS = 'https://asia-southeast2-findmymines.cloudfunctions.net'
 export const incrementUserScore = async (player: Player) => {
     try {
         if (player.account) {
-            await axios.post(CLOUD_FUNCTIONS + '/incrementUserScore', { uid: player.account })
+            await axios.post(CLOUD_FUNCTIONS + `/incrementUserScore?uid=${player.account}`)
         }
     } catch (e) {
         console.warn('[cloud-functions] Cannot perform `incrementUserScore` for player', player)

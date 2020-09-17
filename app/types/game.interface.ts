@@ -73,7 +73,7 @@ export interface IGame {
     tick(): void;
 
     // Actions to perform after finish game
-    finish(): boolean;
+    finish(): Promise<boolean>;
 
     // Game configurations
     setNumberOfBombs(n: number): boolean;
@@ -82,8 +82,8 @@ export interface IGame {
 
     // Player events
     playerDidConnect(p: Player): boolean;
-    playerDidDisconnect(p: Player): GameState;
-    playerDidSelectCoordinate(p: Player, x: number, y: number): boolean; //Also check if game is finished after each move
+    playerDidDisconnect(p: Player): Promise<GameState>;
+    playerDidSelectCoordinate(p: Player, x: number, y: number): Promise<boolean>; //Also check if game is finished after each move
     playerDidSelectPause(): boolean;
 
     // Game states

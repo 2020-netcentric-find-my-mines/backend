@@ -4,6 +4,8 @@ import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
 import chalk from 'chalk';
+import cloneDeep from 'lodash.clonedeep';
+import * as CloudFunctions from './cloud-functions';
 
 function Timer(fn: Function, t: number) {
     var timer = setInterval(fn, t);
@@ -110,6 +112,7 @@ export class Game implements IGame {
         let player: Player = {
             id: playerID,
             name,
+            account: null,
             score: 0,
         };
 
@@ -285,17 +288,14 @@ export class Game implements IGame {
         }
     }
 
-    finish(): boolean {
+    async finish(): Promise<boolean> {
         // Will be called only from playerDidSelectCoordinate
         console.log('finish()');
         this.timer.stop();
         this.changeGameState(GameState.FINISHED);
         let winner: Player = this.getWinner();
         this.emitEvent(SocketEvent.WINNER, winner);
-        /* Do some action in the future
-
-
-        */
+        await CloudFunctions.incrementUserScore(winner)
         return true;
     }
 
@@ -371,7 +371,7 @@ export class Game implements IGame {
     }
 
     // Can continue playing unless only one player is left
-    playerDidDisconnect(p: Player): GameState {
+    async playerDidDisconnect(p: Player): Promise<GameState> {
         // Implement to destroy game in the future
         if (this.players.length == 1) {
             this.changeGameState(GameState.EMPTY);
@@ -389,7 +389,7 @@ export class Game implements IGame {
             }
             this.players.splice(this.players.indexOf(p), 1);
             if (this.players.length == 1) {
-                this.finish();
+                await this.finish();
             }
             return this.currentState;
         }
@@ -397,7 +397,7 @@ export class Game implements IGame {
         return this.currentState;
     }
 
-    playerDidSelectCoordinate(p: Player, x: number, y: number): boolean {
+    async playerDidSelectCoordinate(p: Player, x: number, y: number): Promise<boolean> {
         this.log('playerDidSelectCoordinate', p, x, y);
         if (
             p == null ||

@@ -276,7 +276,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
-    socket.on(SocketEvent.SELECT_COORDINATE, ({ x, y }) => {
+    socket.on(SocketEvent.SELECT_COORDINATE, async ({ x, y }) => {
         // Find game
         let game = findGame(playerID);
 
@@ -292,7 +292,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
             // Run
             if (game && player && x && y) {
-                let selected = game.playerDidSelectCoordinate(player, x, y);
+                let selected = await game.playerDidSelectCoordinate(player, x, y);
                 if (selected) {
                     sendFeedback(
                         SocketEvent.SELECT_COORDINATE_FEEDBACK,
@@ -311,7 +311,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
-    socket.on(SocketEvent.DISCONNECT, () => {
+    socket.on(SocketEvent.DISCONNECT, async () => {
         console.log('🔥 User', socket.id);
 
         // Find game
@@ -322,7 +322,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             let player = game.findPlayer(playerID);
 
             // Run
-            let currentGameState = game.playerDidDisconnect(player);
+            let currentGameState = await game.playerDidDisconnect(player);
             delete _games[playerID];
             if (currentGameState == GameState.EMPTY)
                 games.splice(games.indexOf(game), 1);

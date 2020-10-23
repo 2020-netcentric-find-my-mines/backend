@@ -1,51 +1,13 @@
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
 import chalk from 'chalk';
-import cloneDeep from 'lodash.clonedeep';
-import * as CloudFunctions from './cloud-functions';
-
-function Timer(fn: Function, t: number) {
-    var timer = setInterval(fn, t);
-
-    this.stop = function () {
-        if (timer) {
-            clearInterval(timer);
-            timer = null;
-        }
-        return this;
-    };
-
-    // Start timer using current configurations
-    this.start = function () {
-        if (!timer) {
-            this.stop();
-            timer = setInterval(fn, t);
-        }
-        return this;
-    };
-
-    // Start with new or original configurations
-    // Stop current interval
-    this.reset = function (newT = t) {
-        t = newT;
-        return this.stop().start();
-    };
-}
-
-class Box implements Coordinate {
-    x: number;
-    y: number;
-    isBomb: boolean = false;
-    isSelected: boolean = false;
-
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-}
+import { Tile, createBoardTileList, isValidBoard } from './services/tile';
+import { Timer } from './services/timer';
+import { emitPublicEvent, emitPrivateEvent } from './services/emitEvent';
+import { inclusiveRandomNum, inclusiveRandomNumList } from './services/random';
 
 export class Game implements IGame {
     server: Server;
@@ -73,14 +35,6 @@ export class Game implements IGame {
     isPublic = true;
     isLocked = false;
 
-    emitEvent(event: SocketEvent, data: any) {
-        this.server.sockets.to(this.identifier).emit(event, data);
-    }
-
-    emitPrivateEvent(event: SocketEvent, playerID: string, data: any) {
-        this.server.sockets.to(playerID).emit(event, data);
-    }
-
     identifier = this.generateGameID();
     coordinates: Coordinate[] = [];
     selectedCoordinates: Coordinate[] = [];
@@ -102,7 +56,7 @@ export class Game implements IGame {
     private changeGameState(to: GameState): void {
         let fromState = this.currentState;
         this.currentState = to;
-        this.emitEvent(SocketEvent.GAME_STATE_CHANGED, {
+        emitPublicEvent(this.server, SocketEvent.GAME_STATE_CHANGED, {
             from: fromState,
             to: to,
         });
@@ -111,11 +65,9 @@ export class Game implements IGame {
     addPlayer(playerID: string, name = ''): boolean {
         let player: Player = {
             id: playerID,
-            name,
-            account: null,
+            name: name,
             score: 0,
         };
-
         return this.playerDidConnect(player);
     }
 
@@ -124,7 +76,7 @@ export class Game implements IGame {
         let charac = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         // Generate random string of 7 characters
         for (let i = 0; i < 7; i++) {
-            result += charac.charAt(Math.floor(Math.random() * charac.length));
+            result += charac.charAt(inclusiveRandomNum(charac.length));
         }
         return result;
     }
@@ -133,24 +85,18 @@ export class Game implements IGame {
 
     populateBoard(w: number, h: number): void;
 
-    populateBoard(w: any, h?: any) {
-        if (h == -1) h = w;
+    populateBoard(w: number, h?: number) {
+        if (!h) h = w;
         this.clearBoard();
         // Add all coordinates
-        for (let x = 0; x < w; x++) {
-            for (let y = 0; y < h; y++) {
-                let tile: Coordinate = new Box(x, y);
-                this.coordinates.push(tile);
-            }
-        }
+        this.coordinates = createBoardTileList(w, h);
         // Find and set bomb tiles
-        let tempArr: number[] = [];
-        while (tempArr.length < this.numberOfBombs) {
-            let n: number = Math.floor(Math.random() * w * h);
-            if (tempArr.indexOf(n) === -1) tempArr.push(n);
-        }
-        for (let i of tempArr) {
-            this.coordinates[i].isBomb = true;
+        const tempArr: number[] = inclusiveRandomNumList(
+            this.numberOfBombs,
+            w * h,
+        );
+        for (let index of tempArr) {
+            this.coordinates[index].isBomb = true;
         }
     }
 
@@ -160,9 +106,10 @@ export class Game implements IGame {
     }
 
     resetBoard(): boolean {
+        //Can only reset board if the game is ongoing / paused / finished
         if (!this.isOngoing && !this.isPaused && !this.isFinished) return false;
-        for (let p of this.players) {
-            p.score = 0;
+        for (let player of this.players) {
+            player.score = 0;
         }
         // Deal with special case where we finished game
         // and want to reset but not have enough players to play
@@ -180,11 +127,11 @@ export class Game implements IGame {
     }
 
     selectFirstPlayer(): Player {
-        let n: number = Math.floor(Math.random() * this.players.length);
-        this.currentPlayerIndex = n;
-        let p: Player = this.players[this.currentPlayerIndex];
-        this.emitEvent(SocketEvent.NEXT_PLAYER, p);
-        return p;
+        let firstPlayerIndex: number = inclusiveRandomNum(this.players.length);
+        this.currentPlayerIndex = firstPlayerIndex;
+        let firstPlayer: Player = this.players[firstPlayerIndex];
+        emitPublicEvent(this.server, SocketEvent.NEXT_PLAYER, firstPlayer);
+        return firstPlayer;
     }
 
     log(...args: any[]): void {
@@ -208,10 +155,12 @@ export class Game implements IGame {
     }
 
     playAgain(): boolean {
+        //Run only if game is finished
         if (!this.isFinished) return false;
         let winner: Player = this.getWinner();
-        for (let p of this.players) {
-            p.score = 0;
+        this.currentPlayer = winner;
+        for (let player of this.players) {
+            player.score = 0;
         }
         // Deal with special case where we finished game
         // and want to reset but not have enough players to play
@@ -222,7 +171,6 @@ export class Game implements IGame {
             return true;
         }
         this.populateBoard(this.boardWidth, this.boardHeight);
-        this.currentPlayer = winner;
         this.changeGameState(GameState.ONGOING);
         this.resetTimer();
         return true;
@@ -231,12 +179,11 @@ export class Game implements IGame {
     selectNextPlayer(): Player {
         this.currentPlayerIndex =
             ++this.currentPlayerIndex % this.players.length;
-        let p: Player = this.players[this.currentPlayerIndex];
-        return p;
+        return this.players[this.currentPlayerIndex];
     }
 
     setPlayerName(playerID: string, name: string): boolean {
-        let player = this.players.find((p) => p.id === playerID);
+        const player = this.findPlayer(playerID);
         if (player) {
             player.name = name;
             return true;
@@ -252,35 +199,29 @@ export class Game implements IGame {
         return winner;
     }
 
-    private get hasAllBombsFound(): boolean {
-        if (this.numberOfBombs === this.numberOfBombsFound) return true;
-        return false;
-    }
-
     // In case we want to notify who needs to play right now
     getCurrentPlayer(): Player {
         return this.currentPlayer;
     }
 
     findPlayer(playerID: string): Player {
-        for (let p of this.players) {
-            if (p.id === playerID) return p;
-        }
+        const player: Player = this.players.find((p) => p.id === playerID);
+        if (player) return player;
         return null;
     }
 
     resetTimer(): boolean {
+        //Cannot reset if match is ongoing
         if (!this.isOngoing) return false;
-        console.log('resetTimer()');
         this.currentTime = this.waitTime;
-        this.emitEvent(SocketEvent.TICK, this.currentTime);
+        emitPublicEvent(this.server, SocketEvent.TICK, this.currentTime);
         this.timer.reset(1000);
         return true;
     }
 
     tick(): void {
         this.currentTime = this.currentTime - 1;
-        this.emitEvent(SocketEvent.TICK, this.currentTime);
+        emitPublicEvent(this.server, SocketEvent.TICK, this.currentTime);
         // Go to the next person if the person does not choose tile in time
         if (this.currentTime === 0) {
             // When `currentTime` = 0, change player
@@ -288,31 +229,36 @@ export class Game implements IGame {
         }
     }
 
-    async finish(): Promise<boolean> {
+    finish(): boolean {
         // Will be called only from playerDidSelectCoordinate
-        console.log('finish()');
         this.timer.stop();
         this.changeGameState(GameState.FINISHED);
         let winner: Player = this.getWinner();
-        this.emitEvent(SocketEvent.WINNER, winner);
-        await CloudFunctions.incrementUserScore(winner)
+        emitPublicEvent(this.server, SocketEvent.WINNER, winner);
+        /* Do some action in the future
+
+        */
         return true;
     }
 
-    setNumberOfBombs(n: number): boolean {
+    setNumberOfBombs(num: number): boolean {
+        //Num. of bombs must be less than total tiles in game board and cannot be divided by number of players
+        //Can only set if the game is not started or is only ready
         if (
-            n > 0 &&
-            n % this.maxNumberOfPlayers != 0 &&
-            this.isValidBoard(n, this.boardWidth, this.boardHeight) &&
+            num > 0 &&
+            num % this.maxNumberOfPlayers != 0 &&
+            isValidBoard(num, this.boardWidth, this.boardHeight) &&
             (this.isNotStarted || this.isReady)
         ) {
-            this.numberOfBombs = n;
+            this.numberOfBombs = num;
             return true;
         }
         return false;
     }
 
     setMaxPlayers(n: number): boolean {
+        //Num. of players must be more than 1 and more than the current num. of players in game
+        //Can only set when game is not started or is only ready
         if (
             n > 1 &&
             n >= this.players.length &&
@@ -331,10 +277,12 @@ export class Game implements IGame {
     }
 
     setBoardSize(w: number, h: number): boolean {
+        //Width and height must be more than 0
+        //Can only set when the game is not started or only is ready
         if (
             w > 0 &&
             h > 0 &&
-            this.isValidBoard(this.numberOfBombs, w, h) &&
+            isValidBoard(this.numberOfBombs, w, h) &&
             (this.isNotStarted || this.isReady)
         ) {
             this.boardWidth = w;
@@ -344,20 +292,18 @@ export class Game implements IGame {
         return false;
     }
 
-    private isValidBoard(bomb: number, width: number, height: number): boolean {
-        if (bomb > width * height) return false;
-        return true;
-    }
-
-    playerDidConnect(p: Player): boolean {
-        this.log('playerDidConnect', p.id);
+    playerDidConnect(player: Player): boolean {
+        this.log('playerDidConnect', player.id);
+        //Can only connect if game is not started
+        //Player can only connect if they are not already in game
         if (
-            p != null &&
+            player != null &&
             this.isNotStarted &&
-            this.players.length < this.maxNumberOfPlayers
+            this.players.length < this.maxNumberOfPlayers &&
+            !this.findPlayer(player.id)
         ) {
-            p.score = 0;
-            this.players.push(p);
+            player.score = 0;
+            this.players.push(player);
             if (this.isRoomFull) {
                 this.log(
                     'playerDidConnect',
@@ -371,7 +317,7 @@ export class Game implements IGame {
     }
 
     // Can continue playing unless only one player is left
-    async playerDidDisconnect(p: Player): Promise<GameState> {
+    playerDidDisconnect(player: Player): GameState {
         // Implement to destroy game in the future
         if (this.players.length == 1) {
             this.changeGameState(GameState.EMPTY);
@@ -381,41 +327,43 @@ export class Game implements IGame {
         if (this.isReady) {
             this.changeGameState(GameState.NOT_STARTED);
         } else if (this.isOngoing || this.isPaused) {
-            if (this.currentPlayer == p) {
+            if (this.currentPlayer == player) {
                 this.nextTurn();
             }
             if (this.isPaused) {
                 this.timer.stop();
             }
-            this.players.splice(this.players.indexOf(p), 1);
+            this.players.splice(this.players.indexOf(player), 1);
             if (this.players.length == 1) {
-                await this.finish();
+                this.finish();
             }
             return this.currentState;
         }
-        this.players.splice(this.players.indexOf(p), 1); // Will perform only for isReady, isNotStarted, isFinished
+        this.players.splice(this.players.indexOf(player), 1); // Will perform only for isReady, isNotStarted, isFinished
         return this.currentState;
     }
 
-    async playerDidSelectCoordinate(p: Player, x: number, y: number): Promise<boolean> {
-        this.log('playerDidSelectCoordinate', p, x, y);
+    playerDidSelectCoordinate(player: Player, x: number, y: number): boolean {
+        this.log('playerDidSelectCoordinate', player, x, y);
+        //Coordinate and player must be valid
+        //Can select only if game is ongoing
         if (
-            p == null ||
+            player == null ||
             x < 0 ||
             y < 0 ||
             !this.isOngoing ||
-            p != this.currentPlayer
+            player != this.currentPlayer
         ) {
             return false;
         }
-        let c: Coordinate = this.coordinates[
+        let tile: Coordinate = this.coordinates[
             Number(x) * this.boardHeight + Number(y)
         ];
         // let c: Coordinate = this.coordinates.find(n => { return n.x === Number(x) && n.y === Number(y) })
-        if (c.isSelected) return false;
-        c.isSelected = true;
-        this.selectedCoordinates.push(c);
-        if (c.isBomb) {
+        if (tile.isSelected) return false;
+        tile.isSelected = true;
+        this.selectedCoordinates.push(tile);
+        if (tile.isBomb) {
             this.currentPlayer.score += 1;
             this.numberOfBombsFound += 1;
             if (this.hasAllBombsFound) return this.finish();
@@ -424,15 +372,21 @@ export class Game implements IGame {
         return true;
     }
 
+    private get hasAllBombsFound(): boolean {
+        if (this.numberOfBombs === this.numberOfBombsFound) return true;
+        return false;
+    }
+
     private nextTurn(): Player {
-        let p: Player = this.selectNextPlayer();
-        this.currentPlayer = p;
-        this.emitEvent(SocketEvent.NEXT_PLAYER, p);
+        let nextPlayer: Player = this.selectNextPlayer();
+        this.currentPlayer = nextPlayer;
+        emitPublicEvent(this.server, SocketEvent.NEXT_PLAYER, nextPlayer);
         this.resetTimer();
-        return p;
+        return nextPlayer;
     }
 
     playerDidSelectPause(): boolean {
+        //Can pause / unpause only if game is ongoing or paused
         if (!this.isOngoing || !this.isPaused) return false;
         if (this.isOngoing) {
             this.changeGameState(GameState.PAUSED);

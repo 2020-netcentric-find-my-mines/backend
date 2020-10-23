@@ -13,7 +13,6 @@ export enum GameState {
 }
 
 export interface IGame {
-    emitEvent(event: SocketEvent, data: any): void;
     server: Server;
 
     identifier: string; // Game's identifier (Same as Socket.IO's room)
@@ -73,7 +72,7 @@ export interface IGame {
     tick(): void;
 
     // Actions to perform after finish game
-    finish(): Promise<boolean>;
+    finish(): boolean;
 
     // Game configurations
     setNumberOfBombs(n: number): boolean;
@@ -82,8 +81,8 @@ export interface IGame {
 
     // Player events
     playerDidConnect(p: Player): boolean;
-    playerDidDisconnect(p: Player): Promise<GameState>;
-    playerDidSelectCoordinate(p: Player, x: number, y: number): Promise<boolean>; //Also check if game is finished after each move
+    playerDidDisconnect(p: Player): GameState;
+    playerDidSelectCoordinate(p: Player, x: number, y: number): boolean; //Also check if game is finished after each move
     playerDidSelectPause(): boolean;
 
     // Game states

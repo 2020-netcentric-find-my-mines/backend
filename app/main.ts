@@ -5,6 +5,7 @@ import { Game } from './game';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 import { GameState } from './types/game.interface';
+import { emitPublicEvent } from './services/emitEvent';
 
 let app = express()
     .use(cors())
@@ -38,7 +39,7 @@ function sendFeedback(
     isOK: boolean,
     message: string | null = null,
 ) {
-    game.emitEvent(event, {
+    emitPublicEvent(game.server, event, {
         isOK,
         data: isOK ? game.data : null,
         message,
@@ -276,7 +277,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
-    socket.on(SocketEvent.SELECT_COORDINATE, async ({ x, y }) => {
+    socket.on(SocketEvent.SELECT_COORDINATE, ({ x, y }) => {
         // Find game
         let game = findGame(playerID);
 
@@ -292,7 +293,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
 
             // Run
             if (game && player && x && y) {
-                let selected = await game.playerDidSelectCoordinate(player, x, y);
+                let selected = game.playerDidSelectCoordinate(player, x, y);
                 if (selected) {
                     sendFeedback(
                         SocketEvent.SELECT_COORDINATE_FEEDBACK,
@@ -311,7 +312,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 
-    socket.on(SocketEvent.DISCONNECT, async () => {
+    socket.on(SocketEvent.DISCONNECT, () => {
         console.log('🔥 User', socket.id);
 
         // Find game
@@ -322,7 +323,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             let player = game.findPlayer(playerID);
 
             // Run
-            let currentGameState = await game.playerDidDisconnect(player);
+            let currentGameState = game.playerDidDisconnect(player);
             delete _games[playerID];
             if (currentGameState == GameState.EMPTY)
                 games.splice(games.indexOf(game), 1);

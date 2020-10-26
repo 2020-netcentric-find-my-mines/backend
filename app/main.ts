@@ -292,7 +292,7 @@ io.on(SocketEvent.CONNECTION, (socket) => {
             let player = game.findPlayer(playerID);
 
             // Run
-            if (game && player && x && y) {
+            if (game && player && x !== null && y !== null) {
                 let selected = game.playerDidSelectCoordinate(player, x, y);
                 if (selected) {
                     sendFeedback(

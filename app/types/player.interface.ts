@@ -3,4 +3,5 @@ export interface Player {
     name: string; // Player's name
     // account: Account | null; // Player's account
     score: number; // Player's score
+    type: string; // Player's type (player / spectator)
 }

@@ -19,6 +19,7 @@ export interface IGame {
     coordinates: Coordinate[]; // All coordiantes
     selectedCoordinates: Coordinate[]; //All selected coordinates
     players: Player[]; // All players
+    spectators: Player[]; // All spectators
     currentPlayer: Player | null; // Current player
     currentState: GameState; // Current game's state
 
@@ -62,8 +63,14 @@ export interface IGame {
     // Return the current player that needs to play the turn
     getCurrentPlayer(): Player;
 
+    // Return boolean whether number of players in game reach the maximum players allowed
+    isPlayersFull(): boolean;
+
     // Return object Player if player is in the game; otherwise, return null
     findPlayer(playerID: string): Player;
+
+    // Return total number of players and spectators in game 
+    getTotalMembers(): number; 
 
     //
     resetTimer(): boolean;
@@ -79,9 +86,17 @@ export interface IGame {
     setMaxPlayers(n: number): boolean;
     setBoardSize(w: number, h: number): boolean;
 
+    // Connection events
+    addPlayer(playerID: string): boolean;
+    addSpectator(playerID: string): boolean;
+    removeMember(member: Player): GameState; // Remove player or spectator from game
+
     // Player events
     playerDidConnect(p: Player): boolean;
+    spectatorDidConnect(p: Player): boolean;
+    memberDidChangeType(p: Player): boolean;
     playerDidDisconnect(p: Player): GameState;
+    spectatorDidDisconnect(p: Player): GameState;
     playerDidSelectCoordinate(p: Player, x: number, y: number): boolean; //Also check if game is finished after each move
     playerDidSelectPause(): boolean;
 

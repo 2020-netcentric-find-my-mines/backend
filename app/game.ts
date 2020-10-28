@@ -8,6 +8,7 @@ import { Tile, createBoardTileList, isValidBoard } from './services/tile';
 import { Timer } from './services/timer';
 import { emitPublicEvent, emitPrivateEvent } from './services/emitEvent';
 import { inclusiveRandomNum, inclusiveRandomNumList } from './services/random';
+import { createPlayer, createSpectator } from './services/player';
 
 export class Game implements IGame {
     server: Server;
@@ -39,6 +40,7 @@ export class Game implements IGame {
     coordinates: Coordinate[] = [];
     selectedCoordinates: Coordinate[] = [];
     players: Player[] = [];
+    spectators: Player[] = [];
     currentPlayer: Player = null;
     currentState = GameState.NOT_STARTED;
     private currentPlayerIndex: number = null;
@@ -63,12 +65,20 @@ export class Game implements IGame {
     }
 
     addPlayer(playerID: string, name = ''): boolean {
-        let player: Player = {
-            id: playerID,
-            name: name,
-            score: 0,
-        };
+        if (this.findPlayer(playerID)) return false;
+        const player = createPlayer(playerID, name);
         return this.playerDidConnect(player);
+    }
+
+    addSpectator(playerID: string, name = ''): boolean {
+        if (this.findPlayer(playerID)) return false;
+        const spectator = createSpectator(playerID, name);
+        return this.spectatorDidConnect(spectator);
+    }
+
+    removeMember(member: Player): GameState {
+        if (member.type === 'player') return this.playerDidDisconnect(member);
+        return this.spectatorDidDisconnect(member);
     }
 
     generateGameID(): string {
@@ -205,9 +215,14 @@ export class Game implements IGame {
     }
 
     findPlayer(playerID: string): Player {
-        const player: Player = this.players.find((p) => p.id === playerID);
+        let player: Player = this.players.find((p) => p.id === playerID);
+        if (!player) player = this.spectators.find((p) => p.id === playerID);
         if (player) return player;
         return null;
+    }
+
+    getTotalMembers(): number {
+        return this.players.length + this.spectators.length;
     }
 
     resetTimer(): boolean {
@@ -265,14 +280,14 @@ export class Game implements IGame {
             (this.isNotStarted || this.isReady)
         ) {
             this.maxNumberOfPlayers = n;
-            if (this.isRoomFull) this.changeGameState(GameState.READY);
+            if (this.isPlayersFull) this.changeGameState(GameState.READY);
             else this.changeGameState(GameState.NOT_STARTED);
             return true;
         }
         return false;
     }
 
-    private get isRoomFull(): boolean {
+    isPlayersFull(): boolean {
         return this.players.length === this.maxNumberOfPlayers;
     }
 
@@ -298,13 +313,12 @@ export class Game implements IGame {
         //Player can only connect if they are not already in game
         if (
             player != null &&
-            this.isNotStarted &&
-            this.players.length < this.maxNumberOfPlayers &&
-            !this.findPlayer(player.id)
+            (this.isNotStarted || this.isFinished) &&
+            this.players.length < this.maxNumberOfPlayers
         ) {
-            player.score = 0;
+            if (this.isFinished) this.changeGameState(GameState.NOT_STARTED);
             this.players.push(player);
-            if (this.isRoomFull) {
+            if (this.isPlayersFull) {
                 this.log(
                     'playerDidConnect',
                     'Room is full, changing `currentState` to READY',
@@ -316,11 +330,37 @@ export class Game implements IGame {
         return false;
     }
 
+    spectatorDidConnect(spectator: Player): boolean {
+        if (!spectator) return false;
+        this.spectators.push(spectator);
+        return true;
+    }
+
+    memberDidChangeType(member: Player): boolean {
+        //Can only change type if game is not ongoing or paused
+        if (this.isOngoing || this.isPaused || !member) return false;
+        if (member.type === 'player') {
+            member.type = 'spectator';
+            this.spectators.push(member);
+            this.players.splice(this.players.indexOf(member), 1);
+            if (this.isReady) this.changeGameState(GameState.NOT_STARTED);
+        }
+        else {
+            if (this.isPlayersFull) return false;
+            member.type = 'player';
+            this.players.push(member);
+            this.spectators.splice(this.players.indexOf(member), 1);
+            if (this.isPlayersFull) this.changeGameState(GameState.READY);
+        }
+        if (this.isFinished) this.changeGameState(GameState.NOT_STARTED);
+        return true;
+    }
+
     // Can continue playing unless only one player is left
     playerDidDisconnect(player: Player): GameState {
-        // Implement to destroy game in the future
         if (this.players.length == 1) {
-            this.changeGameState(GameState.EMPTY);
+            if (this.getTotalMembers() === 1)
+                this.changeGameState(GameState.EMPTY);
             this.players = [];
             return this.currentState;
         }
@@ -340,6 +380,12 @@ export class Game implements IGame {
             return this.currentState;
         }
         this.players.splice(this.players.indexOf(player), 1); // Will perform only for isReady, isNotStarted, isFinished
+        return this.currentState;
+    }
+
+    spectatorDidDisconnect(spectator: Player): GameState {
+        if (this.getTotalMembers() === 1) this.changeGameState(GameState.EMPTY);
+        this.spectators.splice(this.spectators.indexOf(spectator), 1);
         return this.currentState;
     }
 

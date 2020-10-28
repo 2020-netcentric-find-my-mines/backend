@@ -121,7 +121,14 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
         console.log('✨ [JOIN_GAME] Received', gameID);
         let game = games.find((g) => g.identifier === gameID);
         if (game) {
-            let success = game.addPlayer(playerID, _players[playerID] ?? null);
+            let success;
+            if (!game.isPlayersFull)
+                success = game.addPlayer(playerID, _players[playerID] ?? null);
+            else
+                success = game.addSpectator(
+                    playerID,
+                    _players[playerID] ?? null,
+                );
             if (success) {
                 console.log(
                     `✨ [JOIN_GAME] [Player:${playerID}] -> [Game:${game.identifier}]`,
@@ -315,14 +322,14 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
         console.log('🔥 User', socket.id);
 
         // Find game
-        let game = findGame(playerID);
+        const game = findGame(playerID);
 
         if (game) {
             // Find player
-            let player = game.findPlayer(playerID);
+            const player = game.findPlayer(playerID);
 
             // Run
-            let currentGameState = game.playerDidDisconnect(player);
+            const currentGameState = game.removeMember(player);
             delete _games[playerID];
             if (currentGameState == GameState.EMPTY)
                 games.splice(games.indexOf(game), 1);
@@ -373,6 +380,33 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
                 false,
                 'Failed to pause the game',
             );
+        }
+    });
+
+    socket.on(SocketEvent.CHANGE_PLAYER_TYPE, () => {
+        // Find game
+        const game = findGame(playerID);
+
+        if (game) {
+            const player = game.findPlayer(playerID);
+
+            if (player) {
+                const doesChanged = game.memberDidChangeType(player);
+                if (doesChanged)
+                    sendFeedback(
+                        SocketEvent.CHANGE_PLAYER_TYPE_FEEDBACK,
+                        game,
+                        true,
+                        'Player type has been changed.',
+                    );
+                else
+                    sendPrivateFeedback(
+                        SocketEvent.CHANGE_PLAYER_TYPE_FEEDBACK,
+                        playerID,
+                        false,
+                        'Failed to change player type.',
+                    );
+            }
         }
     });
 

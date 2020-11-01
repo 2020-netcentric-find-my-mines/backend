@@ -258,12 +258,12 @@ export class Game implements IGame {
 
     setNumberOfBombs(num: number): boolean {
         //Num. of bombs must be less than total tiles in game board and cannot be divided by number of players
-        //Can only set if the game is not started or is only ready
+        //Can only set if the game is not started, is ready, or finished
         if (
             num > 0 &&
             num % this.maxNumberOfPlayers != 0 &&
             isValidBoard(num, this.boardWidth, this.boardHeight) &&
-            (this.isNotStarted || this.isReady)
+            (this.isNotStarted || this.isReady || this.isReady)
         ) {
             this.numberOfBombs = num;
             return true;
@@ -293,12 +293,12 @@ export class Game implements IGame {
 
     setBoardSize(w: number, h: number): boolean {
         //Width and height must be more than 0
-        //Can only set when the game is not started or only is ready
+        //Can only set when the game is not started, is ready, or finished
         if (
             w > 0 &&
             h > 0 &&
             isValidBoard(this.numberOfBombs, w, h) &&
-            (this.isNotStarted || this.isReady)
+            (this.isNotStarted || this.isReady || this.isFinished)
         ) {
             this.boardWidth = w;
             this.boardHeight = h;

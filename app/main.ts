@@ -105,7 +105,7 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
     // Create a new game
     socket.on(SocketEvent.CREATE_GAME, () => {
         let game = new Game(io);
-        game.addPlayer(playerID);
+        game.addPlayer(playerID, _players[playerID] ?? null);
         games.push(game);
         _games[playerID] = game.identifier;
         socket.join(game.identifier);

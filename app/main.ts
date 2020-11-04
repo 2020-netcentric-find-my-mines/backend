@@ -38,7 +38,7 @@ function sendFeedback(
     isOK: boolean,
     message: string | null = null,
 ) {
-    emitPublicEvent(game.server, event, {
+    emitPublicEvent(game.server, event, game.identifier, {
         isOK,
         data: isOK ? game.data : null,
         message,

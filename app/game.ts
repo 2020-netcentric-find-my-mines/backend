@@ -325,6 +325,7 @@ export class Game implements IGame {
                 );
                 this.changeGameState(GameState.READY);
             }
+            emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.getTotalMembers());
             return true;
         }
         return false;
@@ -333,6 +334,7 @@ export class Game implements IGame {
     spectatorDidConnect(spectator: Player): boolean {
         if (!spectator) return false;
         this.spectators.push(spectator);
+        emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.getTotalMembers());
         return true;
     }
 
@@ -362,6 +364,7 @@ export class Game implements IGame {
             if (this.getTotalMembers() === 1)
                 this.changeGameState(GameState.EMPTY);
             this.players = [];
+            emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.getTotalMembers());
             return this.currentState;
         }
         if (this.isReady) {
@@ -377,15 +380,18 @@ export class Game implements IGame {
             if (this.players.length == 1) {
                 this.finish();
             }
+            emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.getTotalMembers());
             return this.currentState;
         }
         this.players.splice(this.players.indexOf(player), 1); // Will perform only for isReady, isNotStarted, isFinished
+        emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.getTotalMembers());
         return this.currentState;
     }
 
     spectatorDidDisconnect(spectator: Player): GameState {
         if (this.getTotalMembers() === 1) this.changeGameState(GameState.EMPTY);
         this.spectators.splice(this.spectators.indexOf(spectator), 1);
+        emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.getTotalMembers());
         return this.currentState;
     }
 

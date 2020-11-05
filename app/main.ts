@@ -1,6 +1,6 @@
 import cors from 'cors';
 import express from 'express';
-import socket from 'socket.io';
+import { Socket } from 'socket.io';
 import { Game } from './game';
 import { emitPublicEvent } from './services/emitEvent';
 import { SocketEvent } from './socket-event';
@@ -17,7 +17,7 @@ let app = express()
     });
 
 const httpServer = require('http').createServer(app);
-const io = socket(httpServer);
+const io = require('socket.io')(httpServer);
 
 function sendPrivateFeedback(
     event: SocketEvent,
@@ -71,7 +71,7 @@ const __games: Game[] = [];
 const games = new Proxy(__games, proxyHandler);
 
 // Handle all Socket.IO events
-io.on(SocketEvent.CONNECTION, (socket) => {
+io.on(SocketEvent.CONNECTION, (socket: Socket) => {
     console.log('🎉 User', socket.id);
     let playerID = socket.id;
 

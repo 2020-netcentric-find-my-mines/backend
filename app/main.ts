@@ -1,11 +1,10 @@
-import express from 'express';
 import cors from 'cors';
-import socket, { Socket } from 'socket.io';
+import express from 'express';
+import socket from 'socket.io';
 import { Game } from './game';
-import { SocketEvent } from './socket-event';
-import { Coordinate } from './types/coordinate.interface';
-import { GameState } from './types/game.interface';
 import { emitPublicEvent } from './services/emitEvent';
+import { SocketEvent } from './socket-event';
+import { GameState } from './types/game.interface';
 
 let app = express()
     .use(cors())
@@ -16,9 +15,9 @@ let app = express()
             )
             .end();
     })
-    .listen(process.env.PORT || 3001);
 
-const io = socket.listen(app);
+const httpServer = require('http').createServer(app);
+const io = socket.listen(httpServer);
 
 function sendPrivateFeedback(
     event: SocketEvent,
@@ -444,3 +443,5 @@ io.on(SocketEvent.CONNECTION, (socket) => {
         }
     });
 });
+
+httpServer.listen(process.env.PORT || 3001)

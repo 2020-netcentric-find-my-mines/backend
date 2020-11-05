@@ -14,10 +14,10 @@ let app = express()
                 '<img src="https://media1.tenor.com/images/3cee627ab9f455a0f14739ba5edbf81a/tenor.gif?itemid=13499314" />',
             )
             .end();
-    })
+    });
 
 const httpServer = require('http').createServer(app);
-const io = socket.listen(httpServer);
+const io = socket(httpServer);
 
 function sendPrivateFeedback(
     event: SocketEvent,
@@ -444,4 +444,4 @@ io.on(SocketEvent.CONNECTION, (socket) => {
     });
 });
 
-httpServer.listen(process.env.PORT || 3001)
+httpServer.listen(process.env.PORT || 3001);

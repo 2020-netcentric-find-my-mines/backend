@@ -280,7 +280,7 @@ export class Game implements IGame {
             (this.isNotStarted || this.isReady)
         ) {
             this.maxNumberOfPlayers = n;
-            if (this.isPlayersFull) this.changeGameState(GameState.READY);
+            if (this.isPlayersFull()) this.changeGameState(GameState.READY);
             else this.changeGameState(GameState.NOT_STARTED);
             return true;
         }
@@ -318,7 +318,7 @@ export class Game implements IGame {
         ) {
             if (this.isFinished) this.changeGameState(GameState.NOT_STARTED);
             this.players.push(player);
-            if (this.isPlayersFull) {
+            if (this.isPlayersFull()) {
                 this.log(
                     'playerDidConnect',
                     'Room is full, changing `currentState` to READY',
@@ -348,11 +348,11 @@ export class Game implements IGame {
             if (this.isReady) this.changeGameState(GameState.NOT_STARTED);
         }
         else {
-            if (this.isPlayersFull) return false;
+            if (this.isPlayersFull()) return false;
             member.type = 'player';
             this.players.push(member);
             this.spectators.splice(this.players.indexOf(member), 1);
-            if (this.isPlayersFull) this.changeGameState(GameState.READY);
+            if (this.isPlayersFull()) this.changeGameState(GameState.READY);
         }
         if (this.isFinished) this.changeGameState(GameState.NOT_STARTED);
         return true;

@@ -354,9 +354,12 @@ export class Game implements IGame {
             }
             emitPublicEvent(
                 this.server,
-                SocketEvent.NUMBER_PLAYERS_CHANGED,
+                SocketEvent.MEMBER_JOINED_GAME,
                 this.identifier,
-                this.getTotalMembers(),
+                {
+                    member: player,
+                    numOfMembers: this.getTotalMembers(),
+                },
             );
             return true;
         }
@@ -368,9 +371,12 @@ export class Game implements IGame {
         this.spectators.push(spectator);
         emitPublicEvent(
             this.server,
-            SocketEvent.NUMBER_PLAYERS_CHANGED,
+            SocketEvent.MEMBER_JOINED_GAME,
             this.identifier,
-            this.getTotalMembers(),
+            {
+                member: spectator,
+                numOfMembers: this.getTotalMembers(),
+            },
         );
         return true;
     }
@@ -378,6 +384,7 @@ export class Game implements IGame {
     memberDidChangeType(member: Player): boolean {
         //Can only change type if game is not ongoing or paused
         if (this.isOngoing || this.isPaused || !member) return false;
+        const oldType = member.type;
         if (member.type === 'player') {
             member.type = 'spectator';
             this.spectators.push(member);
@@ -391,6 +398,11 @@ export class Game implements IGame {
             if (this.isPlayersFull()) this.changeGameState(GameState.READY);
         }
         if (this.isFinished) this.changeGameState(GameState.NOT_STARTED);
+        emitPublicEvent(this.server, SocketEvent.MEMBER_CHANGED_TYPE, this.identifier, {
+            member: member,
+            previousType: oldType,
+            newType: member.type,
+        });
         return true;
     }
 
@@ -417,18 +429,24 @@ export class Game implements IGame {
             }
             emitPublicEvent(
                 this.server,
-                SocketEvent.NUMBER_PLAYERS_CHANGED,
+                SocketEvent.MEMBER_LEFT_GAME,
                 this.identifier,
-                this.getTotalMembers(),
+                {
+                    member: player,
+                    numOfMembers: this.getTotalMembers(),
+                },
             );
             return this.currentState;
         }
         this.players.splice(this.players.indexOf(player), 1); // Will perform only for isReady, isNotStarted, isFinished
         emitPublicEvent(
             this.server,
-            SocketEvent.NUMBER_PLAYERS_CHANGED,
+            SocketEvent.MEMBER_LEFT_GAME,
             this.identifier,
-            this.getTotalMembers(),
+            {
+                member: player,
+                numOfMembers: this.getTotalMembers(),
+            },
         );
         return this.currentState;
     }
@@ -438,9 +456,12 @@ export class Game implements IGame {
         this.spectators.splice(this.spectators.indexOf(spectator), 1);
         emitPublicEvent(
             this.server,
-            SocketEvent.NUMBER_PLAYERS_CHANGED,
+            SocketEvent.MEMBER_LEFT_GAME,
             this.identifier,
-            this.getTotalMembers(),
+            {
+                member: spectator,
+                numOfMembers: this.getTotalMembers(),
+            },
         );
         return this.currentState;
     }

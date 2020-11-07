@@ -59,10 +59,15 @@ export class Game implements IGame {
     private changeGameState(to: GameState): void {
         let fromState = this.currentState;
         this.currentState = to;
-        emitPublicEvent(this.server, SocketEvent.GAME_STATE_CHANGED, this.identifier, {
-            from: fromState,
-            to: to,
-        });
+        emitPublicEvent(
+            this.server,
+            SocketEvent.GAME_STATE_CHANGED,
+            this.identifier,
+            {
+                from: fromState,
+                to: to,
+            },
+        );
     }
 
     addPlayer(playerID: string, name = ''): boolean {
@@ -141,7 +146,12 @@ export class Game implements IGame {
         let firstPlayerIndex: number = inclusiveRandomNum(this.players.length);
         this.currentPlayerIndex = firstPlayerIndex;
         let firstPlayer: Player = this.players[firstPlayerIndex];
-        emitPublicEvent(this.server, SocketEvent.NEXT_PLAYER, this.identifier, firstPlayer);
+        emitPublicEvent(
+            this.server,
+            SocketEvent.NEXT_PLAYER,
+            this.identifier,
+            firstPlayer,
+        );
         return firstPlayer;
     }
 
@@ -230,14 +240,24 @@ export class Game implements IGame {
         //Cannot reset if match is ongoing
         if (!this.isOngoing) return false;
         this.currentTime = this.waitTime;
-        emitPublicEvent(this.server, SocketEvent.TICK, this.identifier, this.currentTime);
+        emitPublicEvent(
+            this.server,
+            SocketEvent.TICK,
+            this.identifier,
+            this.currentTime,
+        );
         this.timer.reset(1000);
         return true;
     }
 
     tick(): void {
         this.currentTime = this.currentTime - 1;
-        emitPublicEvent(this.server, SocketEvent.TICK, this.identifier, this.currentTime);
+        emitPublicEvent(
+            this.server,
+            SocketEvent.TICK,
+            this.identifier,
+            this.currentTime,
+        );
         // Go to the next person if the person does not choose tile in time
         if (this.currentTime === 0) {
             // When `currentTime` = 0, change player
@@ -250,8 +270,16 @@ export class Game implements IGame {
         this.timer.stop();
         this.changeGameState(GameState.FINISHED);
         let winner: Player = this.getWinner();
-        emitPublicEvent(this.server, SocketEvent.WINNER, this.identifier, winner);
-        axios.get('https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore', {params: {uid: winner.id}});
+        emitPublicEvent(
+            this.server,
+            SocketEvent.WINNER,
+            this.identifier,
+            winner,
+        );
+        axios.get(
+            'https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore',
+            { params: { uid: winner.id } },
+        );
         return true;
     }
 
@@ -324,7 +352,12 @@ export class Game implements IGame {
                 );
                 this.changeGameState(GameState.READY);
             }
-            emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.identifier, this.getTotalMembers());
+            emitPublicEvent(
+                this.server,
+                SocketEvent.NUMBER_PLAYERS_CHANGED,
+                this.identifier,
+                this.getTotalMembers(),
+            );
             return true;
         }
         return false;
@@ -333,7 +366,12 @@ export class Game implements IGame {
     spectatorDidConnect(spectator: Player): boolean {
         if (!spectator) return false;
         this.spectators.push(spectator);
-        emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.identifier, this.getTotalMembers());
+        emitPublicEvent(
+            this.server,
+            SocketEvent.NUMBER_PLAYERS_CHANGED,
+            this.identifier,
+            this.getTotalMembers(),
+        );
         return true;
     }
 
@@ -345,8 +383,7 @@ export class Game implements IGame {
             this.spectators.push(member);
             this.players.splice(this.players.indexOf(member), 1);
             if (this.isReady) this.changeGameState(GameState.NOT_STARTED);
-        }
-        else {
+        } else {
             if (this.isPlayersFull()) return false;
             member.type = 'player';
             this.players.push(member);
@@ -378,18 +415,33 @@ export class Game implements IGame {
             if (this.players.length == 1) {
                 this.finish();
             }
-            emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.identifier, this.getTotalMembers());
+            emitPublicEvent(
+                this.server,
+                SocketEvent.NUMBER_PLAYERS_CHANGED,
+                this.identifier,
+                this.getTotalMembers(),
+            );
             return this.currentState;
         }
         this.players.splice(this.players.indexOf(player), 1); // Will perform only for isReady, isNotStarted, isFinished
-        emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.identifier, this.getTotalMembers());
+        emitPublicEvent(
+            this.server,
+            SocketEvent.NUMBER_PLAYERS_CHANGED,
+            this.identifier,
+            this.getTotalMembers(),
+        );
         return this.currentState;
     }
 
     spectatorDidDisconnect(spectator: Player): GameState {
         if (this.getTotalMembers() === 1) this.changeGameState(GameState.EMPTY);
         this.spectators.splice(this.spectators.indexOf(spectator), 1);
-        emitPublicEvent(this.server, SocketEvent.NUMBER_PLAYERS_CHANGED, this.identifier, this.getTotalMembers());
+        emitPublicEvent(
+            this.server,
+            SocketEvent.NUMBER_PLAYERS_CHANGED,
+            this.identifier,
+            this.getTotalMembers(),
+        );
         return this.currentState;
     }
 
@@ -430,7 +482,12 @@ export class Game implements IGame {
     private nextTurn(): Player {
         let nextPlayer: Player = this.selectNextPlayer();
         this.currentPlayer = nextPlayer;
-        emitPublicEvent(this.server, SocketEvent.NEXT_PLAYER, this.identifier, nextPlayer);
+        emitPublicEvent(
+            this.server,
+            SocketEvent.NEXT_PLAYER,
+            this.identifier,
+            nextPlayer,
+        );
         this.resetTimer();
         return nextPlayer;
     }

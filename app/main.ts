@@ -357,7 +357,13 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
                 true,
                 'Sucessfully left game.',
             );
-        }
+        } else
+            sendPrivateFeedback(
+                SocketEvent.LEAVE_GAME_FEEDBACK,
+                playerID,
+                false,
+                'Failed to leave game.',
+            );
     });
 
     socket.on(SocketEvent.SET_NUMBER_OF_BOMB, (amount: number) => {

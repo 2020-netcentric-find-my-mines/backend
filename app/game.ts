@@ -1,15 +1,14 @@
+import chalk from 'chalk';
 import { Server } from 'socket.io';
+import { emitPublicEvent } from './services/emitEvent';
+import { createPlayer, createSpectator } from './services/player';
+import { inclusiveRandomNum, inclusiveRandomNumList } from './services/random';
+import { createBoardTileList, isValidBoard } from './services/tile';
+import { Timer } from './services/timer';
 import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
-import chalk from 'chalk';
-import { Tile, createBoardTileList, isValidBoard } from './services/tile';
-import { Timer } from './services/timer';
-import { emitPublicEvent, emitPrivateEvent } from './services/emitEvent';
-import { inclusiveRandomNum, inclusiveRandomNumList } from './services/random';
-import { createPlayer, createSpectator } from './services/player';
-import axios from 'axios';
 
 export class Game implements IGame {
     server: Server;
@@ -127,6 +126,7 @@ export class Game implements IGame {
         for (let player of this.players) {
             player.score = 0;
         }
+        this.numberOfBombsFound = 0;
         // Deal with special case where we finished game
         // and want to reset but not have enough players to play
         if (this.isFinished && this.players.length <= 1) {
@@ -219,8 +219,8 @@ export class Game implements IGame {
             if (this.players[i].score > maxScore) {
                 maxScore = this.players[i].score;
                 winnerList = [this.players[i]];
-            }
-            else if (this.players[i].score === maxScore) winnerList.push(this.players[i]);
+            } else if (this.players[i].score === maxScore)
+                winnerList.push(this.players[i]);
         }
         return winnerList;
     }
@@ -276,30 +276,19 @@ export class Game implements IGame {
         this.changeGameState(GameState.FINISHED);
         let winnerList: Player[] = this.getWinner();
         if (winnerList.length === 1) {
-            emitPublicEvent(
-                this.server,
-                SocketEvent.WINNER,
-                this.identifier,
-                {
-                    winType: 'single',
-                    winner: winnerList[0],
-                },
-            );
-        //     axios.get(
-        //     'https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore',
-        //     { params: { uid: winnerList[0].id } },
-        // );
-        }
-        else {
-            emitPublicEvent(
-                this.server,
-                SocketEvent.WINNER,
-                this.identifier,
-                {
-                    winType: 'multiple',
-                    winner: winnerList,
-                }
-            )
+            emitPublicEvent(this.server, SocketEvent.WINNER, this.identifier, {
+                winType: 'single',
+                winner: winnerList[0],
+            });
+            //     axios.get(
+            //     'https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore',
+            //     { params: { uid: winnerList[0].id } },
+            // );
+        } else {
+            emitPublicEvent(this.server, SocketEvent.WINNER, this.identifier, {
+                winType: 'multiple',
+                winner: winnerList,
+            });
         }
         return true;
     }
@@ -418,11 +407,16 @@ export class Game implements IGame {
             if (this.isPlayersFull()) this.changeGameState(GameState.READY);
         }
         if (this.isFinished) this.changeGameState(GameState.NOT_STARTED);
-        emitPublicEvent(this.server, SocketEvent.MEMBER_CHANGED_TYPE, this.identifier, {
-            member: member,
-            previousType: oldType,
-            newType: member.type,
-        });
+        emitPublicEvent(
+            this.server,
+            SocketEvent.MEMBER_CHANGED_TYPE,
+            this.identifier,
+            {
+                member: member,
+                previousType: oldType,
+                newType: member.type,
+            },
+        );
         return true;
     }
 

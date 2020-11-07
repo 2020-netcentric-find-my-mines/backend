@@ -276,10 +276,10 @@ export class Game implements IGame {
             this.identifier,
             winner,
         );
-        axios.get(
-            'https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore',
-            { params: { uid: winner.id } },
-        );
+        // axios.get(
+        //     'https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore',
+        //     { params: { uid: winner.id } },
+        // );
         return true;
     }
 

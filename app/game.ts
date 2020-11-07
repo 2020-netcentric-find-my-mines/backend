@@ -477,6 +477,7 @@ export class Game implements IGame {
         return {
             gameID: this.identifier,
             players: this.players,
+            spectators: this.spectators,
             selectedCoordinates: this.selectedCoordinates,
             currentState: this.currentState,
             boardWidth: this.boardWidth,

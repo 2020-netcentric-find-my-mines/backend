@@ -336,6 +336,30 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
         }
     });
 
+    socket.on(SocketEvent.LEAVE_GAME, () => {
+        console.log('Disconnect user from game', socket.id);
+
+        // Find game
+        const game = findGame(playerID);
+
+        if (game) {
+            // Find player
+            const player = game.findPlayer(playerID);
+
+            // Run
+            const currentGameState = game.removeMember(player);
+            delete _games[playerID];
+            if (currentGameState == GameState.EMPTY)
+                games.splice(games.indexOf(game), 1);
+            sendPrivateFeedback(
+                SocketEvent.LEAVE_GAME_FEEDBACK,
+                playerID,
+                true,
+                'Sucessfully left game.',
+            );
+        }
+    });
+
     socket.on(SocketEvent.SET_NUMBER_OF_BOMB, (amount: number) => {
         console.log('There will be (amount) number of bomb');
 

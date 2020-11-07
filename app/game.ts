@@ -9,6 +9,7 @@ import { Timer } from './services/timer';
 import { emitPublicEvent, emitPrivateEvent } from './services/emitEvent';
 import { inclusiveRandomNum, inclusiveRandomNumList } from './services/random';
 import { createPlayer, createSpectator } from './services/player';
+import axios from 'axios';
 
 export class Game implements IGame {
     server: Server;
@@ -250,9 +251,7 @@ export class Game implements IGame {
         this.changeGameState(GameState.FINISHED);
         let winner: Player = this.getWinner();
         emitPublicEvent(this.server, SocketEvent.WINNER, this.identifier, winner);
-        /* Do some action in the future
-
-        */
+        axios.get('https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore', {params: {uid: winner.id}});
         return true;
     }
 

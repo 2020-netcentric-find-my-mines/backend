@@ -331,8 +331,10 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
             // Run
             const currentGameState = game.removeMember(player);
             delete _games[playerID];
-            if (currentGameState == GameState.EMPTY)
+            if (currentGameState == GameState.EMPTY) {
                 games.splice(games.indexOf(game), 1);
+
+            }    
         }
     });
 

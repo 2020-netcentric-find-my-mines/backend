@@ -478,6 +478,7 @@ export class Game implements IGame {
             gameID: this.identifier,
             players: this.players,
             spectators: this.spectators,
+            currentNumberOfMembers: this.getTotalMembers(),
             selectedCoordinates: this.selectedCoordinates,
             currentState: this.currentState,
             boardWidth: this.boardWidth,

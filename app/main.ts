@@ -122,7 +122,7 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
         let game = games.find((g) => g.identifier === gameID);
         if (game) {
             let success;
-            if (!game.isPlayersFull)
+            if (!game.isPlayersFull())
                 success = game.addPlayer(playerID, _players[playerID] ?? null);
             else
                 success = game.addSpectator(

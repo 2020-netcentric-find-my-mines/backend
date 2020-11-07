@@ -275,21 +275,14 @@ export class Game implements IGame {
         this.timer.stop();
         this.changeGameState(GameState.FINISHED);
         let winnerList: Player[] = this.getWinner();
-        if (winnerList.length === 1) {
-            emitPublicEvent(this.server, SocketEvent.WINNER, this.identifier, {
-                winType: 'single',
-                winner: winnerList[0],
-            });
-            //     axios.get(
-            //     'https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore',
-            //     { params: { uid: winnerList[0].id } },
-            // );
-        } else {
-            emitPublicEvent(this.server, SocketEvent.WINNER, this.identifier, {
-                winType: 'multiple',
-                winner: winnerList,
-            });
-        }
+        emitPublicEvent(this.server, SocketEvent.WINNER, this.identifier, {
+            winners: winnerList,
+        });
+        // if (winnerList.length === 1)
+        //     axios.get(
+        //         'https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore',
+        //         { params: { uid: winnerList[0].id } },
+        //     );
         return true;
     }
 

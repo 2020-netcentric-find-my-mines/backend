@@ -118,6 +118,7 @@ export class Game implements IGame {
     private clearBoard(): void {
         this.coordinates = [];
         this.selectedCoordinates = [];
+        this.numberOfBombsFound = 0;
     }
 
     resetBoard(): boolean {
@@ -126,7 +127,6 @@ export class Game implements IGame {
         for (let player of this.players) {
             player.score = 0;
         }
-        this.numberOfBombsFound = 0;
         // Deal with special case where we finished game
         // and want to reset but not have enough players to play
         if (this.isFinished && this.players.length <= 1) {

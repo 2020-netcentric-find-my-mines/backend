@@ -362,7 +362,7 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
                 SocketEvent.LEAVE_GAME_FEEDBACK,
                 playerID,
                 false,
-                'Failed to leave game.',
+                'Cannot find game.',
             );
     });
 

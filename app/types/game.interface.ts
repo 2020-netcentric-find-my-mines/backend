@@ -57,8 +57,8 @@ export interface IGame {
     // Pick next player
     selectNextPlayer(): void;
 
-    // Return the winner or current winner of the game
-    getWinner(): Player;
+    // Return the list of current winner(s) of the game
+    getWinner(): Player[];
 
     // Return the current player that needs to play the turn
     getCurrentPlayer(): Player;

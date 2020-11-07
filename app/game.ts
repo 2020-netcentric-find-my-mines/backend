@@ -178,8 +178,8 @@ export class Game implements IGame {
     playAgain(): boolean {
         //Run only if game is finished
         if (!this.isFinished) return false;
-        let winner: Player = this.getWinner();
-        this.currentPlayer = winner;
+        const winnerList: Player[] = this.getWinner();
+        this.currentPlayer = winnerList[inclusiveRandomNum(winnerList.length)];
         for (let player of this.players) {
             player.score = 0;
         }
@@ -212,12 +212,17 @@ export class Game implements IGame {
         return false;
     }
 
-    getWinner(): Player {
-        let winner: Player = this.players[0];
+    getWinner(): Player[] {
+        let winnerList: Player[] = [this.players[0]];
+        let maxScore = this.players[0].score;
         for (let i = 1; i < this.players.length; i++) {
-            if (this.players[i].score > winner.score) winner = this.players[i];
+            if (this.players[i].score > maxScore) {
+                maxScore = this.players[i].score;
+                winnerList = [this.players[i]];
+            }
+            else if (this.players[i].score === maxScore) winnerList.push(this.players[i]);
         }
-        return winner;
+        return winnerList;
     }
 
     // In case we want to notify who needs to play right now
@@ -269,17 +274,33 @@ export class Game implements IGame {
         // Will be called only from playerDidSelectCoordinate
         this.timer.stop();
         this.changeGameState(GameState.FINISHED);
-        let winner: Player = this.getWinner();
-        emitPublicEvent(
-            this.server,
-            SocketEvent.WINNER,
-            this.identifier,
-            winner,
-        );
-        // axios.get(
+        let winnerList: Player[] = this.getWinner();
+        if (winnerList.length === 1) {
+            emitPublicEvent(
+                this.server,
+                SocketEvent.WINNER,
+                this.identifier,
+                {
+                    winType: 'single',
+                    winner: winnerList[0],
+                },
+            );
+        //     axios.get(
         //     'https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore',
-        //     { params: { uid: winner.id } },
+        //     { params: { uid: winnerList[0].id } },
         // );
+        }
+        else {
+            emitPublicEvent(
+                this.server,
+                SocketEvent.WINNER,
+                this.identifier,
+                {
+                    winType: 'multiple',
+                    winner: winnerList,
+                }
+            )
+        }
         return true;
     }
 
@@ -288,7 +309,6 @@ export class Game implements IGame {
         //Can only set if the game is not started, is ready, or finished
         if (
             num > 0 &&
-            num % this.maxNumberOfPlayers != 0 &&
             isValidBoard(num, this.boardWidth, this.boardHeight) &&
             (this.isNotStarted || this.isReady || this.isReady)
         ) {

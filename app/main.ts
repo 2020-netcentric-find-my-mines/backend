@@ -334,7 +334,7 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
             delete _games[playerID];
             if (currentGameState == GameState.EMPTY) {
                 games.splice(games.indexOf(game), 1);
-                Axios.get(
+                Axios.post(
                     'https://asia-southeast2-findmymines.cloudfunctions.net/deleteGameChat',
                     { params: { gameId: game.identifier } },
                 );
@@ -355,8 +355,13 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
             // Run
             const currentGameState = game.removeMember(player);
             delete _games[playerID];
-            if (currentGameState == GameState.EMPTY)
+            if (currentGameState == GameState.EMPTY) {
                 games.splice(games.indexOf(game), 1);
+                Axios.post(
+                    'https://asia-southeast2-findmymines.cloudfunctions.net/deleteGameChat',
+                    { params: { gameId: game.identifier } },
+                );
+            }
             sendPrivateFeedback(
                 SocketEvent.LEAVE_GAME_FEEDBACK,
                 playerID,

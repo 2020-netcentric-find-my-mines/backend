@@ -355,6 +355,7 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
             // Run
             const currentGameState = game.removeMember(player);
             delete _games[playerID];
+            socket.leave(game.identifier);
             if (currentGameState == GameState.EMPTY) {
                 games.splice(games.indexOf(game), 1);
                 axios.get(

@@ -43,7 +43,7 @@ export interface IGame {
     populateBoard(w: number, h: number): void;
 
     // Reset
-    resetBoard(): boolean;
+    resetBoard(hasWinner: boolean): boolean;
 
     // Randomly pick a player from `players`
     selectFirstPlayer(): void;

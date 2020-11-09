@@ -121,10 +121,15 @@ export class Game implements IGame {
         this.numberOfBombsFound = 0;
     }
 
-    resetBoard(): boolean {
+    resetBoard(hasWinner: boolean): boolean {
         //Can only reset board if the game is ongoing / paused / finished
         if (!this.isOngoing && !this.isPaused && !this.isFinished) return false;
-        const firstPlayer: Player = this.selectFirstPlayer();
+        let firstPlayer: Player;
+        if (!hasWinner) firstPlayer = this.selectFirstPlayer();
+        else {
+            const winnerList: Player[] = this.getWinner();
+            firstPlayer = winnerList[inclusiveRandomNum(winnerList.length)];
+        }
         this.resetGame(firstPlayer);
         return true;
     }

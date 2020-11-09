@@ -250,7 +250,7 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
         }
     });
 
-    socket.on(SocketEvent.RESET_BOARD, () => {
+    socket.on(SocketEvent.RESET_BOARD, (hasWinner: boolean = false) => {
         // Find game
         let game = findGame(playerID);
 
@@ -260,7 +260,7 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
                 game.players,
             );
 
-            let didReset = game.resetBoard();
+            let didReset = game.resetBoard(hasWinner);
             let notEnoughPlayer = game.isNotStarted;
 
             //Run

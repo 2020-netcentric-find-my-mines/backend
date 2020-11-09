@@ -178,8 +178,6 @@ export class Game implements IGame {
     playAgain(): boolean {
         //Run only if game is finished
         if (!this.isFinished) return false;
-        const winnerList: Player[] = this.getWinner();
-        this.currentPlayer = winnerList[inclusiveRandomNum(winnerList.length)];
         for (let player of this.players) {
             player.score = 0;
         }
@@ -192,6 +190,14 @@ export class Game implements IGame {
             return true;
         }
         this.populateBoard(this.boardWidth, this.boardHeight);
+        const winnerList: Player[] = this.getWinner();
+        this.currentPlayer = winnerList[inclusiveRandomNum(winnerList.length)];
+        emitPublicEvent(
+            this.server,
+            SocketEvent.NEXT_PLAYER,
+            this.identifier,
+            this.currentPlayer,
+        );
         this.changeGameState(GameState.ONGOING);
         this.resetTimer();
         return true;

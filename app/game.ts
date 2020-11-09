@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { Server } from 'socket.io';
+import { isThrowStatement } from 'typescript';
 import { emitPublicEvent } from './services/emitEvent';
 import { createPlayer, createSpectator } from './services/player';
 import { inclusiveRandomNum, inclusiveRandomNumList } from './services/random';
@@ -124,21 +125,8 @@ export class Game implements IGame {
     resetBoard(): boolean {
         //Can only reset board if the game is ongoing / paused / finished
         if (!this.isOngoing && !this.isPaused && !this.isFinished) return false;
-        for (let player of this.players) {
-            player.score = 0;
-        }
-        // Deal with special case where we finished game
-        // and want to reset but not have enough players to play
-        if (this.isFinished && this.players.length <= 1) {
-            this.changeGameState(GameState.NOT_STARTED);
-            this.clearBoard();
-            this.currentPlayer = null;
-            return true;
-        }
-        this.populateBoard(this.boardWidth, this.boardHeight);
-        this.currentPlayer = this.selectFirstPlayer();
-        this.changeGameState(GameState.ONGOING);
-        this.resetTimer();
+        const firstPlayer: Player = this.selectFirstPlayer();
+        this.resetGame(firstPlayer);
         return true;
     }
 
@@ -146,12 +134,6 @@ export class Game implements IGame {
         let firstPlayerIndex: number = inclusiveRandomNum(this.players.length);
         this.currentPlayerIndex = firstPlayerIndex;
         let firstPlayer: Player = this.players[firstPlayerIndex];
-        emitPublicEvent(
-            this.server,
-            SocketEvent.NEXT_PLAYER,
-            this.identifier,
-            firstPlayer,
-        );
         return firstPlayer;
     }
 
@@ -170,6 +152,12 @@ export class Game implements IGame {
             return false;
         this.populateBoard(this.boardWidth, this.boardHeight);
         this.currentPlayer = this.selectFirstPlayer();
+        emitPublicEvent(
+            this.server,
+            SocketEvent.NEXT_PLAYER,
+            this.identifier,
+            this.currentPlayer,
+        );
         this.changeGameState(GameState.ONGOING);
         this.startTimer();
         return true;
@@ -178,29 +166,35 @@ export class Game implements IGame {
     playAgain(): boolean {
         //Run only if game is finished
         if (!this.isFinished) return false;
+        const winnerList: Player[] = this.getWinner();
+        const firstPlayer: Player = winnerList[inclusiveRandomNum(winnerList.length)];
+        this.resetGame(firstPlayer);
+        return true;
+    }
+
+    //To be used by resetBoard() and playAgain()
+    private resetGame(firstPlayer: Player): void {
         for (let player of this.players) {
             player.score = 0;
         }
         // Deal with special case where we finished game
         // and want to reset but not have enough players to play
-        if (this.players.length == 1) {
+        if (this.players.length === 1) {
             this.changeGameState(GameState.NOT_STARTED);
             this.clearBoard();
             this.currentPlayer = null;
-            return true;
+            return;
         }
         this.populateBoard(this.boardWidth, this.boardHeight);
-        const winnerList: Player[] = this.getWinner();
-        this.currentPlayer = winnerList[inclusiveRandomNum(winnerList.length)];
+        this.currentPlayer = firstPlayer;
         emitPublicEvent(
             this.server,
             SocketEvent.NEXT_PLAYER,
             this.identifier,
-            this.currentPlayer,
+            firstPlayer,
         );
         this.changeGameState(GameState.ONGOING);
         this.resetTimer();
-        return true;
     }
 
     selectNextPlayer(): Player {

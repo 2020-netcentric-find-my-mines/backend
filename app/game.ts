@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 import { Server } from 'socket.io';
-import { isThrowStatement } from 'typescript';
 import { emitPublicEvent } from './services/emitEvent';
 import { createPlayer, createSpectator } from './services/player';
 import { inclusiveRandomNum, inclusiveRandomNumList } from './services/random';

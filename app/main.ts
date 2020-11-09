@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import { Socket } from 'socket.io';
+import Axios from 'axios';
 import { Game } from './game';
 import { emitPublicEvent } from './services/emitEvent';
 import { SocketEvent } from './socket-event';
@@ -331,8 +332,13 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
             // Run
             const currentGameState = game.removeMember(player);
             delete _games[playerID];
-            if (currentGameState == GameState.EMPTY)
+            if (currentGameState == GameState.EMPTY) {
                 games.splice(games.indexOf(game), 1);
+                Axios.get(
+                    'https://asia-southeast2-findmymines.cloudfunctions.net/deleteGameChat',
+                    { params: { gameId: game.identifier } },
+                );
+            }
         }
     });
 

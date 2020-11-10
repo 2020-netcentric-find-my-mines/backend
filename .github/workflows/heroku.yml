@@ -31,4 +31,4 @@ jobs:
                   git config --global user.name "github-actions[bot]"
                   git add .
                   git commit -m 'Deploy to Heroku'
-                  git push staging --force
+                  git push staging dev --force

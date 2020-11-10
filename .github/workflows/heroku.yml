@@ -11,7 +11,7 @@ jobs:
         steps:
             - uses: actions/checkout@v2
             - name: Setup `frontend` project
-            - run: |-
+              run: |-
                   cd app
                   git clone https://github.com/2020-netcentric-find-my-mines/frontend frontend
                   cd frontend

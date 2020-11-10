@@ -17,6 +17,7 @@ jobs:
                   cd frontend
                   git checkout dev
                   rm -rf .git
+                  yarn
                   yarn build
             - uses: akhileshns/heroku-deploy@v3.4.6
               with:

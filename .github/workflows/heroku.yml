@@ -26,7 +26,6 @@ jobs:
               run: |-
                   rm -rf .git
                   git init
-                  git checkout master
                   git remote add staging https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}.git
             - name: Push to Heroku
               run: |-

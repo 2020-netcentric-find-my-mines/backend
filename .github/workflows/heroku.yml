@@ -24,12 +24,14 @@ jobs:
                   cd ../
             - name: Setup Heroku
               run: |-
+                  rm -rf .git
+                  git init
+                  git checkout master
                   git remote add staging https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}.git
-                  git fetch --unshallow origin
             - name: Push to Heroku
               run: |-
                   git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git config --global user.name "github-actions[bot]"
                   git add .
                   git commit -m 'Deploy to Heroku'
-                  git push staging:master dev --force
+                  git push staging master --force

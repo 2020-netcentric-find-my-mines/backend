@@ -1,17 +1,25 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - dev
+    push:
+        branches:
+            - dev
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.4.6
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: ${{secrets.HEROKU_APP_NAME}} 
-          heroku_email: ${{secrets.HEROKU_EMAIL}}
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: Clone 2020-netcentric-find-my-mines/frontend
+            - run: |-
+                  cd app
+                  git clone https://github.com/2020-netcentric-find-my-mines/frontend frontend
+                  cd frontend
+                  git checkout dev
+                  rm -rf .git
+                  yarn build
+            - uses: akhileshns/heroku-deploy@v3.4.6
+              with:
+                  heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+                  heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+                  heroku_email: ${{secrets.HEROKU_EMAIL}}

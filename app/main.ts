@@ -1,7 +1,8 @@
+import axios from 'axios';
 import cors from 'cors';
 import express from 'express';
+import path from 'path';
 import { Socket } from 'socket.io';
-import axios from 'axios';
 import { Game } from './game';
 import { emitPublicEvent } from './services/emitEvent';
 import { SocketEvent } from './socket-event';
@@ -9,13 +10,7 @@ import { GameState } from './types/game.interface';
 
 let app = express()
     .use(cors())
-    .use((_: express.Request, res: express.Response) => {
-        return res
-            .send(
-                '<img src="https://media1.tenor.com/images/3cee627ab9f455a0f14739ba5edbf81a/tenor.gif?itemid=13499314" />',
-            )
-            .end();
-    });
+    .use(express.static(path.join(__dirname, 'frontend/dist')));
 
 const httpServer = require('http').createServer(app);
 const io = require('socket.io')(httpServer);

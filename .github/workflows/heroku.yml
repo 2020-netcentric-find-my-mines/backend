@@ -10,7 +10,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
-            - uses: Clone 2020-netcentric-find-my-mines/frontend
+            - uses: Setup `frontend` project
             - run: |-
                   cd app
                   git clone https://github.com/2020-netcentric-find-my-mines/frontend frontend

@@ -171,7 +171,8 @@ export class Game implements IGame {
         //Run only if game is finished
         if (!this.isFinished) return false;
         const winnerList: Player[] = this.getWinner();
-        const firstPlayer: Player = winnerList[inclusiveRandomNum(winnerList.length)];
+        const firstPlayer: Player =
+            winnerList[inclusiveRandomNum(winnerList.length)];
         this.resetGame(firstPlayer);
         return true;
     }

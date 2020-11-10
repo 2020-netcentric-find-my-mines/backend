@@ -10,7 +10,7 @@ import { GameState } from './types/game.interface';
 
 let app = express()
     .use(cors())
-    .use(express.static(path.join(__dirname, 'frontend/dist')));
+    .use(express.static(path.join(__dirname, 'static')));
 
 const httpServer = require('http').createServer(app);
 const io = require('socket.io')(httpServer);

@@ -26,7 +26,7 @@
         "dev": "nodemon --watch 'app/**/*.ts' --ignore 'app/**/*.spec.ts' --exec 'ts-node' app/main.ts",
         "format": "prettier --write '**/*.{ts,md,json}'",
         "tsc": "tsc",
-        "build": "npm run tsc",
+        "build": "npm run tsc && cp -R app/static dist",
         "start:prod": "node dist/main.js",
         "start:heroku": "npm run build && npm run start:prod",
         "start": "npm run start:heroku"

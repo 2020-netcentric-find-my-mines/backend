@@ -9,7 +9,6 @@ import { SocketEvent } from './socket-event';
 import { Coordinate } from './types/coordinate.interface';
 import { GameState, IGame } from './types/game.interface';
 import { Player } from './types/player.interface';
-import axios from 'axios';
 
 export class Game implements IGame {
     server: Server;
@@ -284,11 +283,6 @@ export class Game implements IGame {
         emitPublicEvent(this.server, SocketEvent.WINNER, this.identifier, {
             winners: winnerList,
         });
-        if (winnerList.length === 1)
-            axios.get(
-                'https://asia-southeast2-findmymines.cloudfunctions.net/incrementUserScore',
-                { params: { uid: winnerList[0].id } },
-            );
         return true;
     }
 

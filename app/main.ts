@@ -314,7 +314,7 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
         }
     });
 
-    socket.on(SocketEvent.DISCONNECT, () => {
+    socket.on(SocketEvent.DISCONNECT, async () => {
         console.log('🔥 User', socket.id);
 
         // Find game
@@ -329,7 +329,7 @@ io.on(SocketEvent.CONNECTION, (socket: Socket) => {
             delete _games[playerID];
             if (currentGameState == GameState.EMPTY) {
                 games.splice(games.indexOf(game), 1);
-                axios.get(
+                await axios.get(
                     'https://asia-southeast2-findmymines.cloudfunctions.net/deleteGameChat',
                     { params: { gameId: game.identifier } },
                 );
